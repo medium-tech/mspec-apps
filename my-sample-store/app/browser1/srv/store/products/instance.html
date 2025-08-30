@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <title>my_sample_store.store.products.id</title>
+        <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+        <meta http-equiv="Pragma" content="no-cache" />
+        <meta http-equiv="Expires" content="0" />
+        <link rel="stylesheet" type="text/css" href="/style.css">
+        <script src="/store/products/index.js"></script>
+        <script type="text/javascript">
+
+            //
+            // views
+            //
+
+            function showProductsReadView() {
+                window.document.getElementById('products-update').hidden = true;
+                window.document.getElementById('products-delete').hidden = true;
+                window.document.getElementById('products-read').hidden = false;
+            }
+
+            function showProductsUpdateView() {
+                window.document.getElementById('products-read').hidden = true;
+                window.document.getElementById('products-delete').hidden = true;
+                window.document.getElementById('products-update').hidden = false;
+            }
+
+            function updateProductsStatus(status, className) {
+                const statusSpan = document.getElementById('update-products-status')
+                statusSpan.hidden = false
+                statusSpan.innerText = status
+                statusSpan.className = className
+            }
+
+            function showProductsDeleteView() {
+                window.document.getElementById('products-read').hidden = true;
+                window.document.getElementById('products-update').hidden = true;
+                window.document.getElementById('products-delete').hidden = false;
+            }
+
+            //
+            // server ops
+            //
+
+            function fetchProducts() {
+                const id = productsId();
+                console.log(`fetching products ${id}`);
+                clientReadProducts(id)
+                    .then(response => {
+                        if (response.ok) {
+                            return response.text();
+                        } else {
+                            // if not found
+                            if (response.status === 404) {
+                                document.getElementById('products-not-found').hidden = false;
+                            }
+                            throw new Error(`products ${id} read failed`);
+                        }
+                    })
+                    .then(text => {
+                        console.log(text);
+                        const data = initProducts(JSON.parse(text));
+                        document.getElementById('products-not-found').hidden = true;
+
+                        const readTBody = document.querySelector('#products-read-tbody');
+                        productsToDisplayTBody(data, readTBody);
+
+                        const updateTBody = document.querySelector('#products-update-tbody');
+                        productsToInputTBody(data, updateTBody);
+                    }).
+                    catch(error => {console.error(error)});
+            }
+
+            function deleteProducts() {
+                const id = productsId();
+                console.log(`deleting products ${id}`);
+                clientDeleteProducts(id)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`products ${id} delete failed`);
+                        }
+                        console.log(`products ${id} deleted`)
+                        window.location.reload();
+                    })
+                    .catch(error => {console.error(error)});
+            }
+
+            function updateProducts() {
+
+                const id = productsId();
+                
+                const updateTBody = document.querySelector('#products-update-tbody');
+                const data = productsFromInputTBody(updateTBody);
+
+                const verify = verifyProducts(data);
+                if (verify.valid !== true) {
+                    console.error(verify);
+                    throw new Error(`products ${id} invalid`);
+                }
+
+                console.log(`updating products ${id}`);
+
+                updateProductsStatus('loading...', '')
+
+                clientUpdateProducts(id, data)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`products ${id} update failed`);
+                        }
+                        const status = 'updated at ' + new Date().toLocaleTimeString()
+                        updateProductsStatus(status, 'success')
+                        console.log(`products ${id} updated`)
+                    })
+                    .catch(error => {
+                        updateProductsStatus('error', 'error')
+                        console.error(error)
+                    });
+
+            }
+
+            //
+            // on load
+            //
+
+            function productsId() {
+                return window.location.pathname.split('/').pop();
+            }
+
+            window.onload = () => {
+                const idBreadcrumb = document.getElementById('products-id-breadcrumb')
+                const idLink = document.createElement('a');
+                idLink.href = '/store/products/' + productsId();
+                idLink.innerText = productsId();
+                idBreadcrumb.appendChild(idLink);
+
+                fetchProducts();
+            }
+
+        </script>
+    </head>
+
+    <body>
+        <h1>products</h1>
+        <p>
+            <a href="/">my_sample_store</a> . <a href="/store">store</a> . <a href="/store/products">products</a> . <span id="products-id-breadcrumb"></span>
+        </p>
+
+        <!-- 
+        read view layout 
+        -->
+
+        <div id="products-read">
+            
+            <button onclick="fetchProducts()">refresh</button>
+            &emsp;|&emsp;
+            <button onclick="showProductsUpdateView()">edit</button>
+            &emsp;|&emsp;
+            <button onclick="showProductsDeleteView()">delete</button>
+            &emsp;
+            <span id="products-not-found" hidden>item not found</span>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>field</th>
+                        <th>value</th>
+                    </tr>
+                </thead>
+                <tbody id="products-read-tbody">
+                </tbody>
+            </table>
+
+        </div>
+
+        <!-- 
+        update view layout 
+        -->
+
+        <div id="products-update" hidden>
+
+            <button onclick="updateProducts()">save</button>
+            &emsp;|&emsp;
+            <button onclick="showProductsReadView()">cancel</button>
+            &emsp;|&emsp;
+            <span id="update-products-status" hidden></span>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>field</th>
+                        <th>value</th>
+                        <th>other</th>
+                    </tr>
+                </thead>
+                <tbody id="products-update-tbody">
+                </tbody>
+            </table>
+
+        </div>
+
+        <!-- 
+        delete view layout 
+        -->
+
+        <div id="products-delete" hidden>
+
+            <p>confirm delete?</p>
+            <button onclick="deleteProducts()">yes, please delete</button>
+            &emsp;|&emsp;
+            <button onclick="showProductsReadView()">no, cancel</button>
+
+        </div>
+
+    </body>
+
+</html>

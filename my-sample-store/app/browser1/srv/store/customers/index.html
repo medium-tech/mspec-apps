@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <title>my_sample_store.store.customers</title>
+        <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+        <meta http-equiv="Pragma" content="no-cache" />
+        <meta http-equiv="Expires" content="0" />
+        <link rel="stylesheet" type="text/css" href="/style.css">
+        <script src="/store/customers/index.js"></script>
+        <script src="/index.js"></script>
+
+        <script type="text/javascript">
+
+            //
+            // views
+            //
+
+            function showCustomersListView(pushState) {
+                document.getElementById('customers-create').hidden = true;
+                document.getElementById('customers-list').hidden = false;
+
+                // push state
+                if(pushState === true) {
+                    const url = new URL(window.location.href)
+                    url.pathname = '/store/customers'
+
+                    const offset = parseInt(document.getElementById('customers-list-offset').innerText)
+                    const size = parseInt(document.getElementById('customers-list-size').innerText)
+                    url.searchParams.set('offset', offset)
+                    url.searchParams.set('size', size)
+
+                    window.history.pushState({}, '', url)
+                }
+            }
+
+            function showCustomersCreateView(pushState) {
+                document.getElementById('customers-list').hidden = true;
+                document.getElementById('customers-create').hidden = false;
+
+                // push state
+                if(pushState === true) {
+                    const url = new URL(window.location.href)
+                    url.pathname = '/store/customers/create'
+                    url.searchParams.delete('offset')
+                    url.searchParams.delete('size')
+                    window.history.pushState({}, '', url)
+                    console.log('pushed state', url)
+                }
+            }
+
+            function showCustomersNavigateToId() {
+                const id = document.getElementById('customers-get-id').value
+                if(id === '') {
+                    console.error('id is empty')
+                }else{
+                    window.location.href = `/store/customers/${id}`
+                }
+            }
+
+            function randomizeCustomers() {
+                const createTBody = document.querySelector('#customers-create-tbody');
+                customersToInputTBody(randomCustomers(), createTBody)
+            }
+
+            function resetCustomersInput() {
+                const createTBody = document.querySelector('#customers-create-tbody');
+                customersToInputTBody({}, createTBody)
+            }
+
+            function exampleCustomersInput() {
+                const createTBody = document.querySelector('#customers-create-tbody');
+                customersToInputTBody(exampleCustomers(), createTBody)
+            }
+
+            function customersNavigatorEnterKey(e) {
+                console.log('customersNavigatorEnterKey', e)
+                if (e.key === 'Enter' || e.type === 'paste') {
+                    showCustomersNavigateToId()
+                }
+            }
+            
+            function createCustomersStatus(status, className) {
+                const statusP = document.getElementById('create-customers-status')
+                statusP.hidden = false
+                statusP.innerText = status
+                statusP.className = className
+            }
+
+            function listCustomersStatus(status, className) {
+                const statusElement = document.getElementById('customers-list-status')
+                statusElement.innerText = status
+                statusElement.className = className
+            }
+
+            //
+            // server ops
+            //
+
+            function loadItems() {
+
+                const prevPage = document.getElementById('customers-prev-page')
+                const nextPage = document.getElementById('customers-next-page')
+
+                prevPage.disabled = true
+                nextPage.disabled = true
+
+                const offset = parseInt(document.getElementById('customers-list-offset').innerText)
+                const size = parseInt(document.getElementById('customers-list-size').innerText)
+
+                listCustomersStatus('loading...', '')
+
+                console.log(`loadItems(offset=${offset}, size=${size})`)
+
+                clientListCustomerss(offset, size)
+                    .then(response => {
+                        if (!response.ok) {
+                            console.error(response)
+                            throw new Error('customers list failed')
+                        }
+                        return response.json()
+                    }).then(data => {
+                        console.log(data)
+                        const items = data.map(item => initCustomers(item))
+
+                        document.getElementById('customers-list-count').innerText = items.length
+                        customersListToDisplayTBody(items, document.querySelector('#customers-list-tbody'))
+
+                        if (offset > 0) prevPage.disabled = false
+                        if (items.length === size) nextPage.disabled = false
+
+                        listCustomersStatus('success', 'success')
+                    })
+                    .catch(error => {
+                        console.error(error)
+                        listCustomersStatus('error', 'error')
+                    });
+            }
+
+            function changeListPage(direction) {
+
+                let offset = parseInt(document.getElementById('customers-list-offset').innerText)
+                let size = parseInt(document.getElementById('customers-list-size').innerText)
+
+                if (direction < 0) {
+                    offset -= size
+                    if (offset < 0) offset = 0
+                } else if (direction == 0) {
+                    offset = 0
+                } else {
+                    offset += size
+                }
+
+                document.getElementById('customers-list-offset').innerText = offset
+                
+                // 
+
+                const url = new URL(window.location.href)
+                url.searchParams.set('offset', offset)
+                url.searchParams.set('size', size)
+                window.history.pushState({}, '', url)
+                
+                //
+
+                loadItems()
+            }
+
+            function createCustomers() {
+                console.log('createCustomers()')
+
+                const createTBody = document.querySelector('#customers-create-tbody');
+                const data = customersFromInputTBody(createTBody);
+
+                const verify = verifyCustomers(data);
+                if (verify.valid !== true) {
+                    console.error(verify);
+                    throw new Error('customers invalid');
+                }
+
+                console.log('creating customers', data);
+
+                createCustomersStatus('creating...', '')
+
+                clientCreateCustomers(customersForJSON(data))
+                    .then(response => {
+                        if (!response.ok) {
+                            console.error(response)
+                            throw new Error('customers create failed')
+                        }
+                        return response.json()
+                    }).then(data => {
+                        const newItemId = data['id']
+                        console.log(`created customers ${newItemId}`)
+
+                        const newItemLi = document.createElement('li')
+                        const newItemLink = document.createElement('a')
+                        newItemLink.id = 'created-customers'
+                        newItemLink.href = `/store/customers/${newItemId}`
+                        newItemLink.innerText = newItemId
+                        
+                        const createdCustomerss = document.getElementById('created-customerss')
+                        newItemLi.appendChild(newItemLink)
+                        createdCustomerss.appendChild(newItemLi)
+
+                        createCustomersStatus(`success`, 'success')
+                    })
+                    .catch(error => {
+                        console.error(error);
+                        createCustomersStatus('error', 'error')
+                    });
+            }
+
+            //
+            // on load
+            //
+
+            window.onload = function() {
+                resetCustomersInput()
+
+                const isCreatePage = window.location.pathname.endsWith('/create')
+
+                if(isCreatePage) {
+                    showCustomersCreateView(false)
+                }else{
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const urlOffsetParam = urlParams.get('offset')
+                    const urlSizeParam = urlParams.get('size')
+                    console.log(`url params :: offset: ${urlOffsetParam} size: ${urlSizeParam}`)
+
+                    if (urlOffsetParam !== null) {
+                        const listOffset = document.getElementById('customers-list-offset')
+                        console.log('list offset', listOffset)
+                        listOffset.innerText = urlOffsetParam
+                    }
+                    if (urlSizeParam !== null) document.getElementById('customers-list-size').innerText = urlSizeParam
+
+                    loadItems();
+                }
+            }
+
+        </script>
+    </head>
+
+    <body>
+        <h1>customers</h1>
+        <p>
+            <a href="/">my_sample_store</a> . <a href="/store">store</a> . <a href="/store/customers">customers</a>
+        </p>
+
+        <!-- 
+        list view layout 
+        -->
+
+        <div id="customers-list">
+
+            status: <span id="customers-list-status">intial</span>
+
+            <br>
+            
+            <button id="customers-prev-page" onclick="changeListPage(-1)" disabled>&lt;&lt;&lt;</button>
+            <button onclick="loadItems()">refresh</button>
+            <button id="customers-next-page" onclick="changeListPage(1)" disabled>&gt;&gt;&gt;</button>
+            &emsp;|&emsp;
+            <button onclick="showCustomersCreateView(true)">create</button>
+            &emsp;|&emsp;
+            <button onclick="showCustomersNavigateToId()">get</button>
+            <input id="customers-get-id" type="text" placeholder="customers id" size="32" onkeypress="customersNavigatorEnterKey(event)"/>
+            
+
+            <br>
+
+            offset: <span id="customers-list-offset">0</span>
+            &emsp;
+            size: <span id="customers-list-size">25</span>
+            &emsp;
+            count: <span id="customers-list-count">-</span>
+            
+            <br>
+
+            <table>
+                <thead>
+                    <tr>
+                         <th>id</th>
+
+                         <th>customer_name</th>
+
+                         <th>email</th>
+
+                         <th>phone_number</th>
+
+
+                    </tr>
+                </thead>
+
+                <tbody id="customers-list-tbody">
+                </tbody>
+
+            </table>
+
+        </div>
+
+        <!-- 
+        create view layout 
+        -->
+
+        <div id="customers-create" hidden>
+
+            <button onclick="createCustomers()">submit</button>
+            &emsp;|&emsp;
+            <button onclick="resetCustomersInput()">reset</button>
+            &emsp;|&emsp;
+            <button onclick="exampleCustomersInput()">example</button>
+            &emsp;|&emsp;
+            <button onclick="randomizeCustomers()">random</button>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th width="15%">field</th>
+                        <th width="33%">value</th>
+                        <th>other</th>
+                    </tr>
+                </thead>
+                <tbody id="customers-create-tbody">
+                </tbody>
+            </table>
+
+            <p id="create-customers-status" hidden></p>
+
+            <ul id="created-customerss">
+            </ul>
+
+        </div>
+
+    </body>
+
+</html>

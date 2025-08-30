@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <title>my_sample_store.store.customers.id</title>
+        <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+        <meta http-equiv="Pragma" content="no-cache" />
+        <meta http-equiv="Expires" content="0" />
+        <link rel="stylesheet" type="text/css" href="/style.css">
+        <script src="/store/customers/index.js"></script>
+        <script type="text/javascript">
+
+            //
+            // views
+            //
+
+            function showCustomersReadView() {
+                window.document.getElementById('customers-update').hidden = true;
+                window.document.getElementById('customers-delete').hidden = true;
+                window.document.getElementById('customers-read').hidden = false;
+            }
+
+            function showCustomersUpdateView() {
+                window.document.getElementById('customers-read').hidden = true;
+                window.document.getElementById('customers-delete').hidden = true;
+                window.document.getElementById('customers-update').hidden = false;
+            }
+
+            function updateCustomersStatus(status, className) {
+                const statusSpan = document.getElementById('update-customers-status')
+                statusSpan.hidden = false
+                statusSpan.innerText = status
+                statusSpan.className = className
+            }
+
+            function showCustomersDeleteView() {
+                window.document.getElementById('customers-read').hidden = true;
+                window.document.getElementById('customers-update').hidden = true;
+                window.document.getElementById('customers-delete').hidden = false;
+            }
+
+            //
+            // server ops
+            //
+
+            function fetchCustomers() {
+                const id = customersId();
+                console.log(`fetching customers ${id}`);
+                clientReadCustomers(id)
+                    .then(response => {
+                        if (response.ok) {
+                            return response.text();
+                        } else {
+                            // if not found
+                            if (response.status === 404) {
+                                document.getElementById('customers-not-found').hidden = false;
+                            }
+                            throw new Error(`customers ${id} read failed`);
+                        }
+                    })
+                    .then(text => {
+                        console.log(text);
+                        const data = initCustomers(JSON.parse(text));
+                        document.getElementById('customers-not-found').hidden = true;
+
+                        const readTBody = document.querySelector('#customers-read-tbody');
+                        customersToDisplayTBody(data, readTBody);
+
+                        const updateTBody = document.querySelector('#customers-update-tbody');
+                        customersToInputTBody(data, updateTBody);
+                    }).
+                    catch(error => {console.error(error)});
+            }
+
+            function deleteCustomers() {
+                const id = customersId();
+                console.log(`deleting customers ${id}`);
+                clientDeleteCustomers(id)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`customers ${id} delete failed`);
+                        }
+                        console.log(`customers ${id} deleted`)
+                        window.location.reload();
+                    })
+                    .catch(error => {console.error(error)});
+            }
+
+            function updateCustomers() {
+
+                const id = customersId();
+                
+                const updateTBody = document.querySelector('#customers-update-tbody');
+                const data = customersFromInputTBody(updateTBody);
+
+                const verify = verifyCustomers(data);
+                if (verify.valid !== true) {
+                    console.error(verify);
+                    throw new Error(`customers ${id} invalid`);
+                }
+
+                console.log(`updating customers ${id}`);
+
+                updateCustomersStatus('loading...', '')
+
+                clientUpdateCustomers(id, data)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`customers ${id} update failed`);
+                        }
+                        const status = 'updated at ' + new Date().toLocaleTimeString()
+                        updateCustomersStatus(status, 'success')
+                        console.log(`customers ${id} updated`)
+                    })
+                    .catch(error => {
+                        updateCustomersStatus('error', 'error')
+                        console.error(error)
+                    });
+
+            }
+
+            //
+            // on load
+            //
+
+            function customersId() {
+                return window.location.pathname.split('/').pop();
+            }
+
+            window.onload = () => {
+                const idBreadcrumb = document.getElementById('customers-id-breadcrumb')
+                const idLink = document.createElement('a');
+                idLink.href = '/store/customers/' + customersId();
+                idLink.innerText = customersId();
+                idBreadcrumb.appendChild(idLink);
+
+                fetchCustomers();
+            }
+
+        </script>
+    </head>
+
+    <body>
+        <h1>customers</h1>
+        <p>
+            <a href="/">my_sample_store</a> . <a href="/store">store</a> . <a href="/store/customers">customers</a> . <span id="customers-id-breadcrumb"></span>
+        </p>
+
+        <!-- 
+        read view layout 
+        -->
+
+        <div id="customers-read">
+            
+            <button onclick="fetchCustomers()">refresh</button>
+            &emsp;|&emsp;
+            <button onclick="showCustomersUpdateView()">edit</button>
+            &emsp;|&emsp;
+            <button onclick="showCustomersDeleteView()">delete</button>
+            &emsp;
+            <span id="customers-not-found" hidden>item not found</span>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>field</th>
+                        <th>value</th>
+                    </tr>
+                </thead>
+                <tbody id="customers-read-tbody">
+                </tbody>
+            </table>
+
+        </div>
+
+        <!-- 
+        update view layout 
+        -->
+
+        <div id="customers-update" hidden>
+
+            <button onclick="updateCustomers()">save</button>
+            &emsp;|&emsp;
+            <button onclick="showCustomersReadView()">cancel</button>
+            &emsp;|&emsp;
+            <span id="update-customers-status" hidden></span>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>field</th>
+                        <th>value</th>
+                        <th>other</th>
+                    </tr>
+                </thead>
+                <tbody id="customers-update-tbody">
+                </tbody>
+            </table>
+
+        </div>
+
+        <!-- 
+        delete view layout 
+        -->
+
+        <div id="customers-delete" hidden>
+
+            <p>confirm delete?</p>
+            <button onclick="deleteCustomers()">yes, please delete</button>
+            &emsp;|&emsp;
+            <button onclick="showCustomersReadView()">no, cancel</button>
+
+        </div>
+
+    </body>
+
+</html>

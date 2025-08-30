@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <title>my_sample_store.admin.employees.id</title>
+        <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+        <meta http-equiv="Pragma" content="no-cache" />
+        <meta http-equiv="Expires" content="0" />
+        <link rel="stylesheet" type="text/css" href="/style.css">
+        <script src="/admin/employees/index.js"></script>
+        <script type="text/javascript">
+
+            //
+            // views
+            //
+
+            function showEmployeesReadView() {
+                window.document.getElementById('employees-update').hidden = true;
+                window.document.getElementById('employees-delete').hidden = true;
+                window.document.getElementById('employees-read').hidden = false;
+            }
+
+            function showEmployeesUpdateView() {
+                window.document.getElementById('employees-read').hidden = true;
+                window.document.getElementById('employees-delete').hidden = true;
+                window.document.getElementById('employees-update').hidden = false;
+            }
+
+            function updateEmployeesStatus(status, className) {
+                const statusSpan = document.getElementById('update-employees-status')
+                statusSpan.hidden = false
+                statusSpan.innerText = status
+                statusSpan.className = className
+            }
+
+            function showEmployeesDeleteView() {
+                window.document.getElementById('employees-read').hidden = true;
+                window.document.getElementById('employees-update').hidden = true;
+                window.document.getElementById('employees-delete').hidden = false;
+            }
+
+            //
+            // server ops
+            //
+
+            function fetchEmployees() {
+                const id = employeesId();
+                console.log(`fetching employees ${id}`);
+                clientReadEmployees(id)
+                    .then(response => {
+                        if (response.ok) {
+                            return response.text();
+                        } else {
+                            // if not found
+                            if (response.status === 404) {
+                                document.getElementById('employees-not-found').hidden = false;
+                            }
+                            throw new Error(`employees ${id} read failed`);
+                        }
+                    })
+                    .then(text => {
+                        console.log(text);
+                        const data = initEmployees(JSON.parse(text));
+                        document.getElementById('employees-not-found').hidden = true;
+
+                        const readTBody = document.querySelector('#employees-read-tbody');
+                        employeesToDisplayTBody(data, readTBody);
+
+                        const updateTBody = document.querySelector('#employees-update-tbody');
+                        employeesToInputTBody(data, updateTBody);
+                    }).
+                    catch(error => {console.error(error)});
+            }
+
+            function deleteEmployees() {
+                const id = employeesId();
+                console.log(`deleting employees ${id}`);
+                clientDeleteEmployees(id)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`employees ${id} delete failed`);
+                        }
+                        console.log(`employees ${id} deleted`)
+                        window.location.reload();
+                    })
+                    .catch(error => {console.error(error)});
+            }
+
+            function updateEmployees() {
+
+                const id = employeesId();
+                
+                const updateTBody = document.querySelector('#employees-update-tbody');
+                const data = employeesFromInputTBody(updateTBody);
+
+                const verify = verifyEmployees(data);
+                if (verify.valid !== true) {
+                    console.error(verify);
+                    throw new Error(`employees ${id} invalid`);
+                }
+
+                console.log(`updating employees ${id}`);
+
+                updateEmployeesStatus('loading...', '')
+
+                clientUpdateEmployees(id, data)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`employees ${id} update failed`);
+                        }
+                        const status = 'updated at ' + new Date().toLocaleTimeString()
+                        updateEmployeesStatus(status, 'success')
+                        console.log(`employees ${id} updated`)
+                    })
+                    .catch(error => {
+                        updateEmployeesStatus('error', 'error')
+                        console.error(error)
+                    });
+
+            }
+
+            //
+            // on load
+            //
+
+            function employeesId() {
+                return window.location.pathname.split('/').pop();
+            }
+
+            window.onload = () => {
+                const idBreadcrumb = document.getElementById('employees-id-breadcrumb')
+                const idLink = document.createElement('a');
+                idLink.href = '/admin/employees/' + employeesId();
+                idLink.innerText = employeesId();
+                idBreadcrumb.appendChild(idLink);
+
+                fetchEmployees();
+            }
+
+        </script>
+    </head>
+
+    <body>
+        <h1>employees</h1>
+        <p>
+            <a href="/">my_sample_store</a> . <a href="/admin">admin</a> . <a href="/admin/employees">employees</a> . <span id="employees-id-breadcrumb"></span>
+        </p>
+
+        <!-- 
+        read view layout 
+        -->
+
+        <div id="employees-read">
+            
+            <button onclick="fetchEmployees()">refresh</button>
+            &emsp;|&emsp;
+            <button onclick="showEmployeesUpdateView()">edit</button>
+            &emsp;|&emsp;
+            <button onclick="showEmployeesDeleteView()">delete</button>
+            &emsp;
+            <span id="employees-not-found" hidden>item not found</span>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>field</th>
+                        <th>value</th>
+                    </tr>
+                </thead>
+                <tbody id="employees-read-tbody">
+                </tbody>
+            </table>
+
+        </div>
+
+        <!-- 
+        update view layout 
+        -->
+
+        <div id="employees-update" hidden>
+
+            <button onclick="updateEmployees()">save</button>
+            &emsp;|&emsp;
+            <button onclick="showEmployeesReadView()">cancel</button>
+            &emsp;|&emsp;
+            <span id="update-employees-status" hidden></span>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>field</th>
+                        <th>value</th>
+                        <th>other</th>
+                    </tr>
+                </thead>
+                <tbody id="employees-update-tbody">
+                </tbody>
+            </table>
+
+        </div>
+
+        <!-- 
+        delete view layout 
+        -->
+
+        <div id="employees-delete" hidden>
+
+            <p>confirm delete?</p>
+            <button onclick="deleteEmployees()">yes, please delete</button>
+            &emsp;|&emsp;
+            <button onclick="showEmployeesReadView()">no, cancel</button>
+
+        </div>
+
+    </body>
+
+</html>

@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <title>my_sample_store.store.products</title>
+        <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+        <meta http-equiv="Pragma" content="no-cache" />
+        <meta http-equiv="Expires" content="0" />
+        <link rel="stylesheet" type="text/css" href="/style.css">
+        <script src="/store/products/index.js"></script>
+        <script src="/index.js"></script>
+
+        <script type="text/javascript">
+
+            //
+            // views
+            //
+
+            function showProductsListView(pushState) {
+                document.getElementById('products-create').hidden = true;
+                document.getElementById('products-list').hidden = false;
+
+                // push state
+                if(pushState === true) {
+                    const url = new URL(window.location.href)
+                    url.pathname = '/store/products'
+
+                    const offset = parseInt(document.getElementById('products-list-offset').innerText)
+                    const size = parseInt(document.getElementById('products-list-size').innerText)
+                    url.searchParams.set('offset', offset)
+                    url.searchParams.set('size', size)
+
+                    window.history.pushState({}, '', url)
+                }
+            }
+
+            function showProductsCreateView(pushState) {
+                document.getElementById('products-list').hidden = true;
+                document.getElementById('products-create').hidden = false;
+
+                // push state
+                if(pushState === true) {
+                    const url = new URL(window.location.href)
+                    url.pathname = '/store/products/create'
+                    url.searchParams.delete('offset')
+                    url.searchParams.delete('size')
+                    window.history.pushState({}, '', url)
+                    console.log('pushed state', url)
+                }
+            }
+
+            function showProductsNavigateToId() {
+                const id = document.getElementById('products-get-id').value
+                if(id === '') {
+                    console.error('id is empty')
+                }else{
+                    window.location.href = `/store/products/${id}`
+                }
+            }
+
+            function randomizeProducts() {
+                const createTBody = document.querySelector('#products-create-tbody');
+                productsToInputTBody(randomProducts(), createTBody)
+            }
+
+            function resetProductsInput() {
+                const createTBody = document.querySelector('#products-create-tbody');
+                productsToInputTBody({}, createTBody)
+            }
+
+            function exampleProductsInput() {
+                const createTBody = document.querySelector('#products-create-tbody');
+                productsToInputTBody(exampleProducts(), createTBody)
+            }
+
+            function productsNavigatorEnterKey(e) {
+                console.log('productsNavigatorEnterKey', e)
+                if (e.key === 'Enter' || e.type === 'paste') {
+                    showProductsNavigateToId()
+                }
+            }
+            
+            function createProductsStatus(status, className) {
+                const statusP = document.getElementById('create-products-status')
+                statusP.hidden = false
+                statusP.innerText = status
+                statusP.className = className
+            }
+
+            function listProductsStatus(status, className) {
+                const statusElement = document.getElementById('products-list-status')
+                statusElement.innerText = status
+                statusElement.className = className
+            }
+
+            //
+            // server ops
+            //
+
+            function loadItems() {
+
+                const prevPage = document.getElementById('products-prev-page')
+                const nextPage = document.getElementById('products-next-page')
+
+                prevPage.disabled = true
+                nextPage.disabled = true
+
+                const offset = parseInt(document.getElementById('products-list-offset').innerText)
+                const size = parseInt(document.getElementById('products-list-size').innerText)
+
+                listProductsStatus('loading...', '')
+
+                console.log(`loadItems(offset=${offset}, size=${size})`)
+
+                clientListProductss(offset, size)
+                    .then(response => {
+                        if (!response.ok) {
+                            console.error(response)
+                            throw new Error('products list failed')
+                        }
+                        return response.json()
+                    }).then(data => {
+                        console.log(data)
+                        const items = data.map(item => initProducts(item))
+
+                        document.getElementById('products-list-count').innerText = items.length
+                        productsListToDisplayTBody(items, document.querySelector('#products-list-tbody'))
+
+                        if (offset > 0) prevPage.disabled = false
+                        if (items.length === size) nextPage.disabled = false
+
+                        listProductsStatus('success', 'success')
+                    })
+                    .catch(error => {
+                        console.error(error)
+                        listProductsStatus('error', 'error')
+                    });
+            }
+
+            function changeListPage(direction) {
+
+                let offset = parseInt(document.getElementById('products-list-offset').innerText)
+                let size = parseInt(document.getElementById('products-list-size').innerText)
+
+                if (direction < 0) {
+                    offset -= size
+                    if (offset < 0) offset = 0
+                } else if (direction == 0) {
+                    offset = 0
+                } else {
+                    offset += size
+                }
+
+                document.getElementById('products-list-offset').innerText = offset
+                
+                // 
+
+                const url = new URL(window.location.href)
+                url.searchParams.set('offset', offset)
+                url.searchParams.set('size', size)
+                window.history.pushState({}, '', url)
+                
+                //
+
+                loadItems()
+            }
+
+            function createProducts() {
+                console.log('createProducts()')
+
+                const createTBody = document.querySelector('#products-create-tbody');
+                const data = productsFromInputTBody(createTBody);
+
+                const verify = verifyProducts(data);
+                if (verify.valid !== true) {
+                    console.error(verify);
+                    throw new Error('products invalid');
+                }
+
+                console.log('creating products', data);
+
+                createProductsStatus('creating...', '')
+
+                clientCreateProducts(productsForJSON(data))
+                    .then(response => {
+                        if (!response.ok) {
+                            console.error(response)
+                            throw new Error('products create failed')
+                        }
+                        return response.json()
+                    }).then(data => {
+                        const newItemId = data['id']
+                        console.log(`created products ${newItemId}`)
+
+                        const newItemLi = document.createElement('li')
+                        const newItemLink = document.createElement('a')
+                        newItemLink.id = 'created-products'
+                        newItemLink.href = `/store/products/${newItemId}`
+                        newItemLink.innerText = newItemId
+                        
+                        const createdProductss = document.getElementById('created-productss')
+                        newItemLi.appendChild(newItemLink)
+                        createdProductss.appendChild(newItemLi)
+
+                        createProductsStatus(`success`, 'success')
+                    })
+                    .catch(error => {
+                        console.error(error);
+                        createProductsStatus('error', 'error')
+                    });
+            }
+
+            //
+            // on load
+            //
+
+            window.onload = function() {
+                resetProductsInput()
+
+                const isCreatePage = window.location.pathname.endsWith('/create')
+
+                if(isCreatePage) {
+                    showProductsCreateView(false)
+                }else{
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const urlOffsetParam = urlParams.get('offset')
+                    const urlSizeParam = urlParams.get('size')
+                    console.log(`url params :: offset: ${urlOffsetParam} size: ${urlSizeParam}`)
+
+                    if (urlOffsetParam !== null) {
+                        const listOffset = document.getElementById('products-list-offset')
+                        console.log('list offset', listOffset)
+                        listOffset.innerText = urlOffsetParam
+                    }
+                    if (urlSizeParam !== null) document.getElementById('products-list-size').innerText = urlSizeParam
+
+                    loadItems();
+                }
+            }
+
+        </script>
+    </head>
+
+    <body>
+        <h1>products</h1>
+        <p>
+            <a href="/">my_sample_store</a> . <a href="/store">store</a> . <a href="/store/products">products</a>
+        </p>
+
+        <!-- 
+        list view layout 
+        -->
+
+        <div id="products-list">
+
+            status: <span id="products-list-status">intial</span>
+
+            <br>
+            
+            <button id="products-prev-page" onclick="changeListPage(-1)" disabled>&lt;&lt;&lt;</button>
+            <button onclick="loadItems()">refresh</button>
+            <button id="products-next-page" onclick="changeListPage(1)" disabled>&gt;&gt;&gt;</button>
+            &emsp;|&emsp;
+            <button onclick="showProductsCreateView(true)">create</button>
+            &emsp;|&emsp;
+            <button onclick="showProductsNavigateToId()">get</button>
+            <input id="products-get-id" type="text" placeholder="products id" size="32" onkeypress="productsNavigatorEnterKey(event)"/>
+            
+
+            <br>
+
+            offset: <span id="products-list-offset">0</span>
+            &emsp;
+            size: <span id="products-list-size">25</span>
+            &emsp;
+            count: <span id="products-list-count">-</span>
+            
+            <br>
+
+            <table>
+                <thead>
+                    <tr>
+                         <th>id</th>
+
+                         <th>product_name</th>
+
+                         <th>price</th>
+
+                         <th>in_stock</th>
+
+
+                    </tr>
+                </thead>
+
+                <tbody id="products-list-tbody">
+                </tbody>
+
+            </table>
+
+        </div>
+
+        <!-- 
+        create view layout 
+        -->
+
+        <div id="products-create" hidden>
+
+            <button onclick="createProducts()">submit</button>
+            &emsp;|&emsp;
+            <button onclick="resetProductsInput()">reset</button>
+            &emsp;|&emsp;
+            <button onclick="exampleProductsInput()">example</button>
+            &emsp;|&emsp;
+            <button onclick="randomizeProducts()">random</button>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th width="15%">field</th>
+                        <th width="33%">value</th>
+                        <th>other</th>
+                    </tr>
+                </thead>
+                <tbody id="products-create-tbody">
+                </tbody>
+            </table>
+
+            <p id="create-products-status" hidden></p>
+
+            <ul id="created-productss">
+            </ul>
+
+        </div>
+
+    </body>
+
+</html>
