@@ -41,6 +41,14 @@ def client_create_products(ctx:dict, obj:Products) -> Products:
         with urlopen(request) as response:
             response_body = response.read().decode('utf-8')
             return Products(**json.loads(response_body)).convert_types()
+        
+    except HTTPError as e:
+        if e.code == 401:
+            raise AuthenticationError('Error creating products: authentication error')
+        elif e.code == 403:
+            raise ForbiddenError('Error creating products: forbidden')
+
+        raise MSpecError(f'error creating products: {e.__class__.__name__}: {e}')
 
     except (json.JSONDecodeError, KeyError) as e:
         raise MSpecError(f'invalid response from server, {e.__class__.__name__}: {e}')
@@ -192,7 +200,12 @@ def client_list_products(ctx:dict, offset:int=0, limit:int=50) -> list[Products]
         with urlopen(request) as response:
             response_body = response.read().decode('utf-8')
 
-        return [Products(**item).convert_types() for item in json.loads(response_body)]
+        response_data = json.loads(response_body)
+
+        return {
+            'total': response_data['total'],
+            'items': [Products(**item).convert_types() for item in response_data['items']]
+        }
 
     except (json.JSONDecodeError, TypeError) as e:
         raise MSpecError(f'invalid response from server, {e.__class__.__name__}: {e}')

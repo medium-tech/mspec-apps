@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <title>simple_social_network.content.event</title>
+        <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+        <meta http-equiv="Pragma" content="no-cache" />
+        <meta http-equiv="Expires" content="0" />
+        <link rel="stylesheet" type="text/css" href="/style.css">
+        <script src="/index.js"></script>
+        <script src="/content/event/index.js"></script>
+
+        <script type="text/javascript">
+
+            //
+            // views
+            //
+
+            function showEventListView(pushState) {
+                document.getElementById('event-create').hidden = true;
+                document.getElementById('event-list').hidden = false;
+
+                // push state
+                if(pushState === true) {
+                    const url = new URL(window.location.href)
+                    url.pathname = '/content/event'
+
+                    const offset = parseInt(document.getElementById('event-list-offset').innerText)
+                    const size = parseInt(document.getElementById('event-list-size').innerText)
+                    url.searchParams.set('offset', offset)
+                    url.searchParams.set('size', size)
+
+                    window.history.pushState({}, '', url)
+                }
+            }
+
+            function showEventCreateView(pushState) {
+                document.getElementById('event-list').hidden = true;
+                document.getElementById('event-create').hidden = false;
+
+                // push state
+                if(pushState === true) {
+                    const url = new URL(window.location.href)
+                    url.pathname = '/content/event/create'
+                    url.searchParams.delete('offset')
+                    url.searchParams.delete('size')
+                    window.history.pushState({}, '', url)
+                    console.log('pushed state', url)
+                }
+            }
+
+            function showEventNavigateToId() {
+                const id = document.getElementById('event-get-id').value
+                if(id === '') {
+                    console.error('id is empty')
+                }else{
+                    window.location.href = `/content/event/${id}`
+                }
+            }
+
+            function randomizeEvent() {
+                const createTBody = document.querySelector('#event-create-tbody');
+                eventToInputTBody(randomEvent(), createTBody)
+            }
+
+            function resetEventInput() {
+                const createTBody = document.querySelector('#event-create-tbody');
+                eventToInputTBody({}, createTBody)
+            }
+
+            function exampleEventInput() {
+                const createTBody = document.querySelector('#event-create-tbody');
+                eventToInputTBody(exampleEvent(), createTBody)
+            }
+
+            function eventNavigatorEnterKey(e) {
+                console.log('eventNavigatorEnterKey', e)
+                if (e.key === 'Enter' || e.type === 'paste') {
+                    showEventNavigateToId()
+                }
+            }
+            
+            function createEventStatus(status, className) {
+                const statusP = document.getElementById('create-event-status')
+                statusP.hidden = false
+                statusP.innerText = status
+                statusP.className = className
+            }
+
+            function listEventStatus(status, className) {
+                const statusElement = document.getElementById('event-list-status')
+                statusElement.innerText = status
+                statusElement.className = className
+            }
+
+            //
+            // server ops
+            //
+
+            function loadItems() {
+
+                const prevPage = document.getElementById('event-prev-page')
+                const nextPage = document.getElementById('event-next-page')
+
+                prevPage.disabled = true
+                nextPage.disabled = true
+
+                const offset = parseInt(document.getElementById('event-list-offset').innerText)
+                const size = parseInt(document.getElementById('event-list-size').innerText)
+
+                listEventStatus('loading...', '')
+
+                console.log(`loadItems(offset=${offset}, size=${size})`)
+
+                clientListEvents(offset, size)
+                    .then(response => {
+                        if (!response.ok) {
+                            console.error(response)
+                            throw new Error('event list failed')
+                        }
+                        return response.json()
+                    }).then(data => {
+                        console.log(data)
+                        const items = data['items'].map(item => initEvent(item))
+
+                        document.getElementById('event-list-count').innerText = items.length
+                        document.getElementById('event-list-total').innerText = data['total']
+                        
+                        eventListToDisplayTBody(items, document.querySelector('#event-list-tbody'))
+
+                        if (offset > 0) prevPage.disabled = false
+                        if (items.length === size) nextPage.disabled = false
+
+                        listEventStatus('success', 'success')
+                    })
+                    .catch(error => {
+                        console.error(error)
+                        listEventStatus('error', 'error')
+                    });
+            }
+
+            function changeListPage(direction) {
+
+                let offset = parseInt(document.getElementById('event-list-offset').innerText)
+                let size = parseInt(document.getElementById('event-list-size').innerText)
+
+                if (direction < 0) {
+                    offset -= size
+                    if (offset < 0) offset = 0
+                } else if (direction == 0) {
+                    offset = 0
+                } else {
+                    offset += size
+                }
+
+                document.getElementById('event-list-offset').innerText = offset
+                
+                // 
+
+                const url = new URL(window.location.href)
+                url.searchParams.set('offset', offset)
+                url.searchParams.set('size', size)
+                window.history.pushState({}, '', url)
+                
+                //
+
+                loadItems()
+            }
+
+            function handleCreateEvent() {
+                console.log('handleCreateEvent()')
+
+                const createTBody = document.querySelector('#event-create-tbody');
+                const data = eventFromInputTBody(createTBody);
+
+                const verify = verifyEvent(data);
+                if (verify.valid !== true) {
+                    console.error(verify);
+                    throw new Error('event invalid');
+                }
+
+                console.log('creating event', data);
+
+                createEventStatus('creating...', '')
+
+                clientCreateEvent(eventForJSON(data))
+                    .then(response => {
+                        if (!response.ok) {
+                            console.error(response)
+                            throw new Error('event create failed')
+                        }
+                        return response.json()
+                    }).then(data => {
+                        const newItemId = data['id']
+                        console.log(`created event ${newItemId}`)
+
+                        const newItemLi = document.createElement('li')
+                        const newItemLink = document.createElement('a')
+                        newItemLink.id = 'created-event'
+                        newItemLink.href = `/content/event/${newItemId}`
+                        newItemLink.innerText = newItemId
+                        
+                        const createdEvents = document.getElementById('created-events')
+                        newItemLi.appendChild(newItemLink)
+                        createdEvents.appendChild(newItemLi)
+
+                        createEventStatus(`success`, 'success')
+                    })
+                    .catch(error => {
+                        console.error(error);
+                        createEventStatus('error', 'error')
+                    });
+            }
+
+            //
+            // on load
+            //
+
+            window.onload = function() {
+                resetEventInput()
+
+                const isCreatePage = window.location.pathname.endsWith('/create')
+
+                if(isCreatePage) {
+                    showEventCreateView(false)
+                }else{
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const urlOffsetParam = urlParams.get('offset')
+                    const urlSizeParam = urlParams.get('size')
+                    console.log(`url params :: offset: ${urlOffsetParam} size: ${urlSizeParam}`)
+
+                    if (urlOffsetParam !== null) {
+                        const listOffset = document.getElementById('event-list-offset')
+                        console.log('list offset', listOffset)
+                        listOffset.innerText = urlOffsetParam
+                    }
+                    if (urlSizeParam !== null) document.getElementById('event-list-size').innerText = urlSizeParam
+
+                    loadItems();
+                }
+            }
+
+        </script>
+    </head>
+
+    <body>
+        <h1>event</h1>
+        <p>
+            <a href="/">simple_social_network</a> . <a href="/content">content</a> . <a href="/content/event">event</a>
+        </p>
+
+        <!-- 
+        list view layout 
+        -->
+
+        <div id="event-list">
+
+            status: <span id="event-list-status">intial</span>
+
+            <br>
+            
+            <button id="event-prev-page" onclick="changeListPage(-1)" disabled>&lt;&lt;&lt;</button>
+            <button onclick="loadItems()">refresh</button>
+            <button id="event-next-page" onclick="changeListPage(1)" disabled>&gt;&gt;&gt;</button>
+            &emsp;|&emsp;
+            <button onclick="showEventCreateView(true)">create</button>
+            &emsp;|&emsp;
+            <button onclick="showEventNavigateToId()">get</button>
+            <input id="event-get-id" type="text" placeholder="event id" size="32" onkeypress="eventNavigatorEnterKey(event)"/>
+            
+
+            <br>
+
+            offset: <span id="event-list-offset">0</span>
+            &emsp;
+            size: <span id="event-list-size">25</span>
+            &emsp;
+            count: <span id="event-list-count">-</span>
+            &emsp;
+            total: <span id="event-list-total">-</span>
+            
+            <br>
+
+            <table>
+                <thead>
+                    <tr>
+                         <th>id</th>
+
+                         <th>user_id</th>
+
+                         <th>event_name</th>
+
+                         <th>event_date</th>
+
+                         <th>location</th>
+
+                         <th>description</th>
+
+
+                    </tr>
+                </thead>
+
+                <tbody id="event-list-tbody">
+                </tbody>
+
+            </table>
+
+        </div>
+
+        <!-- 
+        create view layout 
+        -->
+
+        <div id="event-create" hidden>
+
+            <button onclick="handleCreateEvent()">submit</button>
+            &emsp;|&emsp;
+            <button onclick="resetEventInput()">reset</button>
+            &emsp;|&emsp;
+            <button onclick="exampleEventInput()">example</button>
+            &emsp;|&emsp;
+            <button onclick="randomizeEvent()">random</button>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th width="15%">field</th>
+                        <th width="33%">value</th>
+                        <th>other</th>
+                    </tr>
+                </thead>
+                <tbody id="event-create-tbody">
+                </tbody>
+            </table>
+
+            <p id="create-event-status" hidden></p>
+
+            <ul id="created-events">
+            </ul>
+
+        </div>
+
+    </body>
+
+</html>

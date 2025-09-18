@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <title>simple_social_network.user.profile</title>
+        <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+        <meta http-equiv="Pragma" content="no-cache" />
+        <meta http-equiv="Expires" content="0" />
+        <link rel="stylesheet" type="text/css" href="/style.css">
+        <script src="/index.js"></script>
+        <script src="/user/profile/index.js"></script>
+
+        <script type="text/javascript">
+
+            //
+            // views
+            //
+
+            function showProfileListView(pushState) {
+                document.getElementById('profile-create').hidden = true;
+                document.getElementById('profile-list').hidden = false;
+
+                // push state
+                if(pushState === true) {
+                    const url = new URL(window.location.href)
+                    url.pathname = '/user/profile'
+
+                    const offset = parseInt(document.getElementById('profile-list-offset').innerText)
+                    const size = parseInt(document.getElementById('profile-list-size').innerText)
+                    url.searchParams.set('offset', offset)
+                    url.searchParams.set('size', size)
+
+                    window.history.pushState({}, '', url)
+                }
+            }
+
+            function showProfileCreateView(pushState) {
+                document.getElementById('profile-list').hidden = true;
+                document.getElementById('profile-create').hidden = false;
+
+                // push state
+                if(pushState === true) {
+                    const url = new URL(window.location.href)
+                    url.pathname = '/user/profile/create'
+                    url.searchParams.delete('offset')
+                    url.searchParams.delete('size')
+                    window.history.pushState({}, '', url)
+                    console.log('pushed state', url)
+                }
+            }
+
+            function showProfileNavigateToId() {
+                const id = document.getElementById('profile-get-id').value
+                if(id === '') {
+                    console.error('id is empty')
+                }else{
+                    window.location.href = `/user/profile/${id}`
+                }
+            }
+
+            function randomizeProfile() {
+                const createTBody = document.querySelector('#profile-create-tbody');
+                profileToInputTBody(randomProfile(), createTBody)
+            }
+
+            function resetProfileInput() {
+                const createTBody = document.querySelector('#profile-create-tbody');
+                profileToInputTBody({}, createTBody)
+            }
+
+            function exampleProfileInput() {
+                const createTBody = document.querySelector('#profile-create-tbody');
+                profileToInputTBody(exampleProfile(), createTBody)
+            }
+
+            function profileNavigatorEnterKey(e) {
+                console.log('profileNavigatorEnterKey', e)
+                if (e.key === 'Enter' || e.type === 'paste') {
+                    showProfileNavigateToId()
+                }
+            }
+            
+            function createProfileStatus(status, className) {
+                const statusP = document.getElementById('create-profile-status')
+                statusP.hidden = false
+                statusP.innerText = status
+                statusP.className = className
+            }
+
+            function listProfileStatus(status, className) {
+                const statusElement = document.getElementById('profile-list-status')
+                statusElement.innerText = status
+                statusElement.className = className
+            }
+
+            //
+            // server ops
+            //
+
+            function loadItems() {
+
+                const prevPage = document.getElementById('profile-prev-page')
+                const nextPage = document.getElementById('profile-next-page')
+
+                prevPage.disabled = true
+                nextPage.disabled = true
+
+                const offset = parseInt(document.getElementById('profile-list-offset').innerText)
+                const size = parseInt(document.getElementById('profile-list-size').innerText)
+
+                listProfileStatus('loading...', '')
+
+                console.log(`loadItems(offset=${offset}, size=${size})`)
+
+                clientListProfiles(offset, size)
+                    .then(response => {
+                        if (!response.ok) {
+                            console.error(response)
+                            throw new Error('profile list failed')
+                        }
+                        return response.json()
+                    }).then(data => {
+                        console.log(data)
+                        const items = data['items'].map(item => initProfile(item))
+
+                        document.getElementById('profile-list-count').innerText = items.length
+                        document.getElementById('profile-list-total').innerText = data['total']
+                        
+                        profileListToDisplayTBody(items, document.querySelector('#profile-list-tbody'))
+
+                        if (offset > 0) prevPage.disabled = false
+                        if (items.length === size) nextPage.disabled = false
+
+                        listProfileStatus('success', 'success')
+                    })
+                    .catch(error => {
+                        console.error(error)
+                        listProfileStatus('error', 'error')
+                    });
+            }
+
+            function changeListPage(direction) {
+
+                let offset = parseInt(document.getElementById('profile-list-offset').innerText)
+                let size = parseInt(document.getElementById('profile-list-size').innerText)
+
+                if (direction < 0) {
+                    offset -= size
+                    if (offset < 0) offset = 0
+                } else if (direction == 0) {
+                    offset = 0
+                } else {
+                    offset += size
+                }
+
+                document.getElementById('profile-list-offset').innerText = offset
+                
+                // 
+
+                const url = new URL(window.location.href)
+                url.searchParams.set('offset', offset)
+                url.searchParams.set('size', size)
+                window.history.pushState({}, '', url)
+                
+                //
+
+                loadItems()
+            }
+
+            function handleCreateProfile() {
+                console.log('handleCreateProfile()')
+
+                const createTBody = document.querySelector('#profile-create-tbody');
+                const data = profileFromInputTBody(createTBody);
+
+                const verify = verifyProfile(data);
+                if (verify.valid !== true) {
+                    console.error(verify);
+                    throw new Error('profile invalid');
+                }
+
+                console.log('creating profile', data);
+
+                createProfileStatus('creating...', '')
+
+                clientCreateProfile(profileForJSON(data))
+                    .then(response => {
+                        if (!response.ok) {
+                            console.error(response)
+                            throw new Error('profile create failed')
+                        }
+                        return response.json()
+                    }).then(data => {
+                        const newItemId = data['id']
+                        console.log(`created profile ${newItemId}`)
+
+                        const newItemLi = document.createElement('li')
+                        const newItemLink = document.createElement('a')
+                        newItemLink.id = 'created-profile'
+                        newItemLink.href = `/user/profile/${newItemId}`
+                        newItemLink.innerText = newItemId
+                        
+                        const createdProfiles = document.getElementById('created-profiles')
+                        newItemLi.appendChild(newItemLink)
+                        createdProfiles.appendChild(newItemLi)
+
+                        createProfileStatus(`success`, 'success')
+                    })
+                    .catch(error => {
+                        console.error(error);
+                        createProfileStatus('error', 'error')
+                    });
+            }
+
+            //
+            // on load
+            //
+
+            window.onload = function() {
+                resetProfileInput()
+
+                const isCreatePage = window.location.pathname.endsWith('/create')
+
+                if(isCreatePage) {
+                    showProfileCreateView(false)
+                }else{
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const urlOffsetParam = urlParams.get('offset')
+                    const urlSizeParam = urlParams.get('size')
+                    console.log(`url params :: offset: ${urlOffsetParam} size: ${urlSizeParam}`)
+
+                    if (urlOffsetParam !== null) {
+                        const listOffset = document.getElementById('profile-list-offset')
+                        console.log('list offset', listOffset)
+                        listOffset.innerText = urlOffsetParam
+                    }
+                    if (urlSizeParam !== null) document.getElementById('profile-list-size').innerText = urlSizeParam
+
+                    loadItems();
+                }
+            }
+
+        </script>
+    </head>
+
+    <body>
+        <h1>profile</h1>
+        <p>
+            <a href="/">simple_social_network</a> . <a href="/user">user</a> . <a href="/user/profile">profile</a>
+        </p>
+
+        <!-- 
+        list view layout 
+        -->
+
+        <div id="profile-list">
+
+            status: <span id="profile-list-status">intial</span>
+
+            <br>
+            
+            <button id="profile-prev-page" onclick="changeListPage(-1)" disabled>&lt;&lt;&lt;</button>
+            <button onclick="loadItems()">refresh</button>
+            <button id="profile-next-page" onclick="changeListPage(1)" disabled>&gt;&gt;&gt;</button>
+            &emsp;|&emsp;
+            <button onclick="showProfileCreateView(true)">create</button>
+            &emsp;|&emsp;
+            <button onclick="showProfileNavigateToId()">get</button>
+            <input id="profile-get-id" type="text" placeholder="profile id" size="32" onkeypress="profileNavigatorEnterKey(event)"/>
+            
+
+            <br>
+
+            offset: <span id="profile-list-offset">0</span>
+            &emsp;
+            size: <span id="profile-list-size">25</span>
+            &emsp;
+            count: <span id="profile-list-count">-</span>
+            &emsp;
+            total: <span id="profile-list-total">-</span>
+            
+            <br>
+
+            <table>
+                <thead>
+                    <tr>
+                         <th>id</th>
+
+                         <th>user_id</th>
+
+                         <th>username</th>
+
+                         <th>bio</th>
+
+
+                    </tr>
+                </thead>
+
+                <tbody id="profile-list-tbody">
+                </tbody>
+
+            </table>
+
+        </div>
+
+        <!-- 
+        create view layout 
+        -->
+
+        <div id="profile-create" hidden>
+
+            <button onclick="handleCreateProfile()">submit</button>
+            &emsp;|&emsp;
+            <button onclick="resetProfileInput()">reset</button>
+            &emsp;|&emsp;
+            <button onclick="exampleProfileInput()">example</button>
+            &emsp;|&emsp;
+            <button onclick="randomizeProfile()">random</button>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th width="15%">field</th>
+                        <th width="33%">value</th>
+                        <th>other</th>
+                    </tr>
+                </thead>
+                <tbody id="profile-create-tbody">
+                </tbody>
+            </table>
+
+            <p id="create-profile-status" hidden></p>
+
+            <ul id="created-profiles">
+            </ul>
+
+        </div>
+
+    </body>
+
+</html>

@@ -1,0 +1,38 @@
+uwsgi:
+  http: :8008
+  wsgi-file: src/core/server.py
+
+
+  # profile
+  route: ^/user/profile/create static:../browser1/srv/user/profile/index.html
+  route: ^/user/profile/index(.*) static:../browser1/srv/user/profile/index$1
+  load-file-in-cache: ../browser1/srv/user/profile/index.html
+  route: ^/user/profile/(.*) static:../browser1/srv/user/profile/instance.html
+  load-file-in-cache: ../browser1/srv/user/profile/instance.html
+
+
+
+  # post
+  route: ^/content/post/create static:../browser1/srv/content/post/index.html
+  route: ^/content/post/index(.*) static:../browser1/srv/content/post/index$1
+  load-file-in-cache: ../browser1/srv/content/post/index.html
+  route: ^/content/post/(.*) static:../browser1/srv/content/post/instance.html
+  load-file-in-cache: ../browser1/srv/content/post/instance.html
+
+
+
+  # event
+  route: ^/content/event/create static:../browser1/srv/content/event/index.html
+  route: ^/content/event/index(.*) static:../browser1/srv/content/event/index$1
+  load-file-in-cache: ../browser1/srv/content/event/index.html
+  route: ^/content/event/(.*) static:../browser1/srv/content/event/instance.html
+  load-file-in-cache: ../browser1/srv/content/event/instance.html
+
+
+
+
+  static-map: /=../browser1/srv/
+  static-index: index.html
+  static-expires: /* 0
+  
+  py-auto-reload: 1

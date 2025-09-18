@@ -7,8 +7,8 @@
         <meta http-equiv="Pragma" content="no-cache" />
         <meta http-equiv="Expires" content="0" />
         <link rel="stylesheet" type="text/css" href="/style.css">
-        <script src="/store/products/index.js"></script>
         <script src="/index.js"></script>
+        <script src="/store/products/index.js"></script>
 
         <script type="text/javascript">
 
@@ -121,9 +121,11 @@
                         return response.json()
                     }).then(data => {
                         console.log(data)
-                        const items = data.map(item => initProducts(item))
+                        const items = data['items'].map(item => initProducts(item))
 
                         document.getElementById('products-list-count').innerText = items.length
+                        document.getElementById('products-list-total').innerText = data['total']
+                        
                         productsListToDisplayTBody(items, document.querySelector('#products-list-tbody'))
 
                         if (offset > 0) prevPage.disabled = false
@@ -165,8 +167,8 @@
                 loadItems()
             }
 
-            function createProducts() {
-                console.log('createProducts()')
+            function handleCreateProducts() {
+                console.log('handleCreateProducts()')
 
                 const createTBody = document.querySelector('#products-create-tbody');
                 const data = productsFromInputTBody(createTBody);
@@ -274,6 +276,8 @@
             size: <span id="products-list-size">25</span>
             &emsp;
             count: <span id="products-list-count">-</span>
+            &emsp;
+            total: <span id="products-list-total">-</span>
             
             <br>
 
@@ -305,7 +309,7 @@
 
         <div id="products-create" hidden>
 
-            <button onclick="createProducts()">submit</button>
+            <button onclick="handleCreateProducts()">submit</button>
             &emsp;|&emsp;
             <button onclick="resetProductsInput()">reset</button>
             &emsp;|&emsp;

@@ -421,7 +421,7 @@ function productsForJSON(data) {
 
 function clientCreateProducts(data) {
     
-    return fetch('/api/store/products', {
+    return fetchWithSession('/api/store/products', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -432,14 +432,14 @@ function clientCreateProducts(data) {
 
 function clientReadProducts(id) {
 
-    return fetch(`/api/store/products/${id}`, {
+    return fetchWithSession('/api/store/products/' + id, {
         method: 'GET',
     })
 }
 
 function clientUpdateProducts(id, data) {
 
-    return fetch(`/api/store/products/${id}`, {
+    return fetchWithSession(`/api/store/products/${id}`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
@@ -451,7 +451,7 @@ function clientUpdateProducts(id, data) {
 
 function clientDeleteProducts(id) {
 
-    return fetch(`/api/store/products/${id}`, {
+    return fetchWithSession(`/api/store/products/${id}`, {
         method: 'DELETE',
     })
 
@@ -459,7 +459,7 @@ function clientDeleteProducts(id) {
 
 function clientListProductss(offset, size) {
 
-    return fetch(`/api/store/products?offset=${offset}&size=${size}`, {
+    return fetchWithSession(`/api/store/products?offset=${offset}&size=${size}`, {
         method: 'GET',
     })
 }

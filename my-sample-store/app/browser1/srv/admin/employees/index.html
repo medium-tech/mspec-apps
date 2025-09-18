@@ -7,8 +7,8 @@
         <meta http-equiv="Pragma" content="no-cache" />
         <meta http-equiv="Expires" content="0" />
         <link rel="stylesheet" type="text/css" href="/style.css">
-        <script src="/admin/employees/index.js"></script>
         <script src="/index.js"></script>
+        <script src="/admin/employees/index.js"></script>
 
         <script type="text/javascript">
 
@@ -121,9 +121,11 @@
                         return response.json()
                     }).then(data => {
                         console.log(data)
-                        const items = data.map(item => initEmployees(item))
+                        const items = data['items'].map(item => initEmployees(item))
 
                         document.getElementById('employees-list-count').innerText = items.length
+                        document.getElementById('employees-list-total').innerText = data['total']
+                        
                         employeesListToDisplayTBody(items, document.querySelector('#employees-list-tbody'))
 
                         if (offset > 0) prevPage.disabled = false
@@ -165,8 +167,8 @@
                 loadItems()
             }
 
-            function createEmployees() {
-                console.log('createEmployees()')
+            function handleCreateEmployees() {
+                console.log('handleCreateEmployees()')
 
                 const createTBody = document.querySelector('#employees-create-tbody');
                 const data = employeesFromInputTBody(createTBody);
@@ -274,6 +276,8 @@
             size: <span id="employees-list-size">25</span>
             &emsp;
             count: <span id="employees-list-count">-</span>
+            &emsp;
+            total: <span id="employees-list-total">-</span>
             
             <br>
 
@@ -311,7 +315,7 @@
 
         <div id="employees-create" hidden>
 
-            <button onclick="createEmployees()">submit</button>
+            <button onclick="handleCreateEmployees()">submit</button>
             &emsp;|&emsp;
             <button onclick="resetEmployeesInput()">reset</button>
             &emsp;|&emsp;

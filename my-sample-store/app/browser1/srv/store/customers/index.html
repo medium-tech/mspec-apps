@@ -7,8 +7,8 @@
         <meta http-equiv="Pragma" content="no-cache" />
         <meta http-equiv="Expires" content="0" />
         <link rel="stylesheet" type="text/css" href="/style.css">
-        <script src="/store/customers/index.js"></script>
         <script src="/index.js"></script>
+        <script src="/store/customers/index.js"></script>
 
         <script type="text/javascript">
 
@@ -121,9 +121,11 @@
                         return response.json()
                     }).then(data => {
                         console.log(data)
-                        const items = data.map(item => initCustomers(item))
+                        const items = data['items'].map(item => initCustomers(item))
 
                         document.getElementById('customers-list-count').innerText = items.length
+                        document.getElementById('customers-list-total').innerText = data['total']
+                        
                         customersListToDisplayTBody(items, document.querySelector('#customers-list-tbody'))
 
                         if (offset > 0) prevPage.disabled = false
@@ -165,8 +167,8 @@
                 loadItems()
             }
 
-            function createCustomers() {
-                console.log('createCustomers()')
+            function handleCreateCustomers() {
+                console.log('handleCreateCustomers()')
 
                 const createTBody = document.querySelector('#customers-create-tbody');
                 const data = customersFromInputTBody(createTBody);
@@ -274,6 +276,8 @@
             size: <span id="customers-list-size">25</span>
             &emsp;
             count: <span id="customers-list-count">-</span>
+            &emsp;
+            total: <span id="customers-list-total">-</span>
             
             <br>
 
@@ -305,7 +309,7 @@
 
         <div id="customers-create" hidden>
 
-            <button onclick="createCustomers()">submit</button>
+            <button onclick="handleCreateCustomers()">submit</button>
             &emsp;|&emsp;
             <button onclick="resetCustomersInput()">reset</button>
             &emsp;|&emsp;

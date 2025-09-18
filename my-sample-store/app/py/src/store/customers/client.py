@@ -41,6 +41,14 @@ def client_create_customers(ctx:dict, obj:Customers) -> Customers:
         with urlopen(request) as response:
             response_body = response.read().decode('utf-8')
             return Customers(**json.loads(response_body)).convert_types()
+        
+    except HTTPError as e:
+        if e.code == 401:
+            raise AuthenticationError('Error creating customers: authentication error')
+        elif e.code == 403:
+            raise ForbiddenError('Error creating customers: forbidden')
+
+        raise MSpecError(f'error creating customers: {e.__class__.__name__}: {e}')
 
     except (json.JSONDecodeError, KeyError) as e:
         raise MSpecError(f'invalid response from server, {e.__class__.__name__}: {e}')
@@ -192,7 +200,12 @@ def client_list_customers(ctx:dict, offset:int=0, limit:int=50) -> list[Customer
         with urlopen(request) as response:
             response_body = response.read().decode('utf-8')
 
-        return [Customers(**item).convert_types() for item in json.loads(response_body)]
+        response_data = json.loads(response_body)
+
+        return {
+            'total': response_data['total'],
+            'items': [Customers(**item).convert_types() for item in response_data['items']]
+        }
 
     except (json.JSONDecodeError, TypeError) as e:
         raise MSpecError(f'invalid response from server, {e.__class__.__name__}: {e}')

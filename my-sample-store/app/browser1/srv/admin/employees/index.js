@@ -637,7 +637,7 @@ function employeesForJSON(data) {
 
 function clientCreateEmployees(data) {
     
-    return fetch('/api/admin/employees', {
+    return fetchWithSession('/api/admin/employees', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -648,14 +648,14 @@ function clientCreateEmployees(data) {
 
 function clientReadEmployees(id) {
 
-    return fetch(`/api/admin/employees/${id}`, {
+    return fetchWithSession('/api/admin/employees/' + id, {
         method: 'GET',
     })
 }
 
 function clientUpdateEmployees(id, data) {
 
-    return fetch(`/api/admin/employees/${id}`, {
+    return fetchWithSession(`/api/admin/employees/${id}`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
@@ -667,7 +667,7 @@ function clientUpdateEmployees(id, data) {
 
 function clientDeleteEmployees(id) {
 
-    return fetch(`/api/admin/employees/${id}`, {
+    return fetchWithSession(`/api/admin/employees/${id}`, {
         method: 'DELETE',
     })
 
@@ -675,7 +675,7 @@ function clientDeleteEmployees(id) {
 
 function clientListEmployeess(offset, size) {
 
-    return fetch(`/api/admin/employees?offset=${offset}&size=${size}`, {
+    return fetchWithSession(`/api/admin/employees?offset=${offset}&size=${size}`, {
         method: 'GET',
     })
 }

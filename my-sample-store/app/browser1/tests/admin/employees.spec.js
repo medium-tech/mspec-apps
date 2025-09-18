@@ -24,6 +24,12 @@ test('test - admin - employees - pagination', async ({ page }) => {
 
 test('test - admin - employees - instance', async ({ page }) => {
 
+
+
+    //
+    // test employees
+    //
+
     const textToContain = []
 
     // create item
@@ -103,6 +109,11 @@ test('test - admin - employees - instance', async ({ page }) => {
 });
 
 test('test - admin - employees - create random', async ({ page }) => {
+
+  //
+  // test create random employees
+  //
+
   await page.goto('http://localhost:7007/admin/employees/create');
   
   await page.getByRole('button', { name: 'random' }).click();

@@ -417,7 +417,7 @@ function customersForJSON(data) {
 
 function clientCreateCustomers(data) {
     
-    return fetch('/api/store/customers', {
+    return fetchWithSession('/api/store/customers', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -428,14 +428,14 @@ function clientCreateCustomers(data) {
 
 function clientReadCustomers(id) {
 
-    return fetch(`/api/store/customers/${id}`, {
+    return fetchWithSession('/api/store/customers/' + id, {
         method: 'GET',
     })
 }
 
 function clientUpdateCustomers(id, data) {
 
-    return fetch(`/api/store/customers/${id}`, {
+    return fetchWithSession(`/api/store/customers/${id}`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
@@ -447,7 +447,7 @@ function clientUpdateCustomers(id, data) {
 
 function clientDeleteCustomers(id) {
 
-    return fetch(`/api/store/customers/${id}`, {
+    return fetchWithSession(`/api/store/customers/${id}`, {
         method: 'DELETE',
     })
 
@@ -455,7 +455,7 @@ function clientDeleteCustomers(id) {
 
 function clientListCustomerss(offset, size) {
 
-    return fetch(`/api/store/customers?offset=${offset}&size=${size}`, {
+    return fetchWithSession(`/api/store/customers?offset=${offset}&size=${size}`, {
         method: 'GET',
     })
 }

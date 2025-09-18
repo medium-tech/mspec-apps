@@ -29,6 +29,7 @@ def db_create_employees(ctx:dict, obj:Employees) -> Employees:
     obj.validate()
     cursor:sqlite3.Cursor = ctx['db']['cursor']
 
+
     result = cursor.execute(
         "INSERT INTO employees('email', 'employee_name', 'hire_date', 'phone_number', 'position', 'salary') VALUES(?, ?, ?, ?, ?, ?)",
         (obj.email, obj.employee_name, obj.hire_date, obj.phone_number, obj.position, obj.salary,)
@@ -120,13 +121,14 @@ def db_delete_employees(ctx:dict, id:str) -> None:
     """
 
     cursor:sqlite3.Cursor = ctx['db']['cursor']
+
     cursor.execute(f"DELETE FROM employees WHERE id=?", (id,))
 
 
 
     ctx['db']['commit']()
 
-def db_list_employees(ctx:dict, offset:int=0, limit:int=25) -> list[Employees]:
+def db_list_employees(ctx:dict, offset:int=0, limit:int=25) -> dict:
     """
     list single models from the database, and verify each
 
@@ -135,7 +137,9 @@ def db_list_employees(ctx:dict, offset:int=0, limit:int=25) -> list[Employees]:
         offset :: the offset to start listing from.
         limit :: the maximum number of items to list.
     
-    return :: list of each item as a dict.
+    return :: dict with two keys:
+        total :: int of the total number of items.
+        items :: list of each item as a dict.
     """
     cursor:sqlite3.Cursor = ctx['db']['cursor']
     
@@ -162,4 +166,7 @@ def db_list_employees(ctx:dict, offset:int=0, limit:int=25) -> list[Employees]:
 
         ).validate())
 
-    return items
+    return {
+        'total': cursor.execute("SELECT COUNT(*) FROM employees").fetchone()[0],
+        'items': items
+    }

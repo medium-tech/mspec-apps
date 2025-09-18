@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <title>simple_social_network.content.post.id</title>
+        <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+        <meta http-equiv="Pragma" content="no-cache" />
+        <meta http-equiv="Expires" content="0" />
+        <link rel="stylesheet" type="text/css" href="/style.css">
+        <script src="/index.js"></script>
+        <script src="/content/post/index.js"></script>
+        <script type="text/javascript">
+
+            //
+            // views
+            //
+
+            function showPostReadView() {
+                window.document.getElementById('post-update').hidden = true;
+                window.document.getElementById('post-delete').hidden = true;
+                window.document.getElementById('post-read').hidden = false;
+            }
+
+            function showPostUpdateView() {
+                window.document.getElementById('post-read').hidden = true;
+                window.document.getElementById('post-delete').hidden = true;
+                window.document.getElementById('post-update').hidden = false;
+            }
+
+            function updatePostStatus(status, className) {
+                const statusSpan = document.getElementById('update-post-status')
+                statusSpan.hidden = false
+                statusSpan.innerText = status
+                statusSpan.className = className
+            }
+
+            function showPostDeleteView() {
+                window.document.getElementById('post-read').hidden = true;
+                window.document.getElementById('post-update').hidden = true;
+                window.document.getElementById('post-delete').hidden = false;
+            }
+
+            //
+            // server ops
+            //
+
+            function fetchPost() {
+                const id = postId();
+                console.log(`fetching post ${id}`);
+                clientReadPost(id)
+                    .then(response => {
+                        if (response.ok) {
+                            return response.text();
+                        } else {
+                            // if not found
+                            if (response.status === 404) {
+                                document.getElementById('post-not-found').hidden = false;
+                            }
+                            throw new Error(`post ${id} read failed`);
+                        }
+                    })
+                    .then(text => {
+                        console.log(text);
+                        const data = initPost(JSON.parse(text));
+                        document.getElementById('post-not-found').hidden = true;
+
+                        const readTBody = document.querySelector('#post-read-tbody');
+                        postToDisplayTBody(data, readTBody);
+
+                        const updateTBody = document.querySelector('#post-update-tbody');
+                        postToInputTBody(data, updateTBody);
+                    }).
+                    catch(error => {console.error(error)});
+            }
+
+            function deletePost() {
+                const id = postId();
+                console.log(`deleting post ${id}`);
+                clientDeletePost(id)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`post ${id} delete failed`);
+                        }
+                        console.log(`post ${id} deleted`)
+                        window.location.reload();
+                    })
+                    .catch(error => {console.error(error)});
+            }
+
+            function updatePost() {
+
+                const id = postId();
+                
+                const updateTBody = document.querySelector('#post-update-tbody');
+                const data = postFromInputTBody(updateTBody);
+
+                const verify = verifyPost(data);
+                if (verify.valid !== true) {
+                    console.error(verify);
+                    throw new Error(`post ${id} invalid`);
+                }
+
+                console.log(`updating post ${id}`);
+
+                updatePostStatus('loading...', '')
+
+                clientUpdatePost(id, data)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`post ${id} update failed`);
+                        }
+                        const status = 'updated at ' + new Date().toLocaleTimeString()
+                        updatePostStatus(status, 'success')
+                        console.log(`post ${id} updated`)
+                    })
+                    .catch(error => {
+                        updatePostStatus('error', 'error')
+                        console.error(error)
+                    });
+
+            }
+
+            //
+            // on load
+            //
+
+            function postId() {
+                return window.location.pathname.split('/').pop();
+            }
+
+            window.onload = () => {
+                const idBreadcrumb = document.getElementById('post-id-breadcrumb')
+                const idLink = document.createElement('a');
+                idLink.href = '/content/post/' + postId();
+                idLink.innerText = postId();
+                idBreadcrumb.appendChild(idLink);
+
+                fetchPost();
+            }
+
+        </script>
+    </head>
+
+    <body>
+        <h1>post</h1>
+        <p>
+            <a href="/">simple_social_network</a> . <a href="/content">content</a> . <a href="/content/post">post</a> . <span id="post-id-breadcrumb"></span>
+        </p>
+
+        <!-- 
+        read view layout 
+        -->
+
+        <div id="post-read">
+            
+            <button onclick="fetchPost()">refresh</button>
+            &emsp;|&emsp;
+            <button onclick="showPostUpdateView()">edit</button>
+            &emsp;|&emsp;
+            <button onclick="showPostDeleteView()">delete</button>
+            &emsp;
+            <span id="post-not-found" hidden>item not found</span>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>field</th>
+                        <th>value</th>
+                    </tr>
+                </thead>
+                <tbody id="post-read-tbody">
+                </tbody>
+            </table>
+
+        </div>
+
+        <!-- 
+        update view layout 
+        -->
+
+        <div id="post-update" hidden>
+
+            <button onclick="updatePost()">save</button>
+            &emsp;|&emsp;
+            <button onclick="showPostReadView()">cancel</button>
+            &emsp;|&emsp;
+            <span id="update-post-status" hidden></span>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>field</th>
+                        <th>value</th>
+                        <th>other</th>
+                    </tr>
+                </thead>
+                <tbody id="post-update-tbody">
+                </tbody>
+            </table>
+
+        </div>
+
+        <!-- 
+        delete view layout 
+        -->
+
+        <div id="post-delete" hidden>
+
+            <p>confirm delete?</p>
+            <button onclick="deletePost()">yes, please delete</button>
+            &emsp;|&emsp;
+            <button onclick="showPostReadView()">no, cancel</button>
+
+        </div>
+
+    </body>
+
+</html>

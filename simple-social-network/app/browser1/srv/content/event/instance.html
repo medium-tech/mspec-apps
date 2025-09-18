@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <title>simple_social_network.content.event.id</title>
+        <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+        <meta http-equiv="Pragma" content="no-cache" />
+        <meta http-equiv="Expires" content="0" />
+        <link rel="stylesheet" type="text/css" href="/style.css">
+        <script src="/index.js"></script>
+        <script src="/content/event/index.js"></script>
+        <script type="text/javascript">
+
+            //
+            // views
+            //
+
+            function showEventReadView() {
+                window.document.getElementById('event-update').hidden = true;
+                window.document.getElementById('event-delete').hidden = true;
+                window.document.getElementById('event-read').hidden = false;
+            }
+
+            function showEventUpdateView() {
+                window.document.getElementById('event-read').hidden = true;
+                window.document.getElementById('event-delete').hidden = true;
+                window.document.getElementById('event-update').hidden = false;
+            }
+
+            function updateEventStatus(status, className) {
+                const statusSpan = document.getElementById('update-event-status')
+                statusSpan.hidden = false
+                statusSpan.innerText = status
+                statusSpan.className = className
+            }
+
+            function showEventDeleteView() {
+                window.document.getElementById('event-read').hidden = true;
+                window.document.getElementById('event-update').hidden = true;
+                window.document.getElementById('event-delete').hidden = false;
+            }
+
+            //
+            // server ops
+            //
+
+            function fetchEvent() {
+                const id = eventId();
+                console.log(`fetching event ${id}`);
+                clientReadEvent(id)
+                    .then(response => {
+                        if (response.ok) {
+                            return response.text();
+                        } else {
+                            // if not found
+                            if (response.status === 404) {
+                                document.getElementById('event-not-found').hidden = false;
+                            }
+                            throw new Error(`event ${id} read failed`);
+                        }
+                    })
+                    .then(text => {
+                        console.log(text);
+                        const data = initEvent(JSON.parse(text));
+                        document.getElementById('event-not-found').hidden = true;
+
+                        const readTBody = document.querySelector('#event-read-tbody');
+                        eventToDisplayTBody(data, readTBody);
+
+                        const updateTBody = document.querySelector('#event-update-tbody');
+                        eventToInputTBody(data, updateTBody);
+                    }).
+                    catch(error => {console.error(error)});
+            }
+
+            function deleteEvent() {
+                const id = eventId();
+                console.log(`deleting event ${id}`);
+                clientDeleteEvent(id)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`event ${id} delete failed`);
+                        }
+                        console.log(`event ${id} deleted`)
+                        window.location.reload();
+                    })
+                    .catch(error => {console.error(error)});
+            }
+
+            function updateEvent() {
+
+                const id = eventId();
+                
+                const updateTBody = document.querySelector('#event-update-tbody');
+                const data = eventFromInputTBody(updateTBody);
+
+                const verify = verifyEvent(data);
+                if (verify.valid !== true) {
+                    console.error(verify);
+                    throw new Error(`event ${id} invalid`);
+                }
+
+                console.log(`updating event ${id}`);
+
+                updateEventStatus('loading...', '')
+
+                clientUpdateEvent(id, data)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`event ${id} update failed`);
+                        }
+                        const status = 'updated at ' + new Date().toLocaleTimeString()
+                        updateEventStatus(status, 'success')
+                        console.log(`event ${id} updated`)
+                    })
+                    .catch(error => {
+                        updateEventStatus('error', 'error')
+                        console.error(error)
+                    });
+
+            }
+
+            //
+            // on load
+            //
+
+            function eventId() {
+                return window.location.pathname.split('/').pop();
+            }
+
+            window.onload = () => {
+                const idBreadcrumb = document.getElementById('event-id-breadcrumb')
+                const idLink = document.createElement('a');
+                idLink.href = '/content/event/' + eventId();
+                idLink.innerText = eventId();
+                idBreadcrumb.appendChild(idLink);
+
+                fetchEvent();
+            }
+
+        </script>
+    </head>
+
+    <body>
+        <h1>event</h1>
+        <p>
+            <a href="/">simple_social_network</a> . <a href="/content">content</a> . <a href="/content/event">event</a> . <span id="event-id-breadcrumb"></span>
+        </p>
+
+        <!-- 
+        read view layout 
+        -->
+
+        <div id="event-read">
+            
+            <button onclick="fetchEvent()">refresh</button>
+            &emsp;|&emsp;
+            <button onclick="showEventUpdateView()">edit</button>
+            &emsp;|&emsp;
+            <button onclick="showEventDeleteView()">delete</button>
+            &emsp;
+            <span id="event-not-found" hidden>item not found</span>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>field</th>
+                        <th>value</th>
+                    </tr>
+                </thead>
+                <tbody id="event-read-tbody">
+                </tbody>
+            </table>
+
+        </div>
+
+        <!-- 
+        update view layout 
+        -->
+
+        <div id="event-update" hidden>
+
+            <button onclick="updateEvent()">save</button>
+            &emsp;|&emsp;
+            <button onclick="showEventReadView()">cancel</button>
+            &emsp;|&emsp;
+            <span id="update-event-status" hidden></span>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>field</th>
+                        <th>value</th>
+                        <th>other</th>
+                    </tr>
+                </thead>
+                <tbody id="event-update-tbody">
+                </tbody>
+            </table>
+
+        </div>
+
+        <!-- 
+        delete view layout 
+        -->
+
+        <div id="event-delete" hidden>
+
+            <p>confirm delete?</p>
+            <button onclick="deleteEvent()">yes, please delete</button>
+            &emsp;|&emsp;
+            <button onclick="showEventReadView()">no, cancel</button>
+
+        </div>
+
+    </body>
+
+</html>

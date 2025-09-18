@@ -29,6 +29,7 @@ def db_create_products(ctx:dict, obj:Products) -> Products:
     obj.validate()
     cursor:sqlite3.Cursor = ctx['db']['cursor']
 
+
     result = cursor.execute(
         "INSERT INTO products('in_stock', 'price', 'product_name') VALUES(?, ?, ?)",
         (obj.in_stock, obj.price, obj.product_name,)
@@ -114,13 +115,14 @@ def db_delete_products(ctx:dict, id:str) -> None:
     """
 
     cursor:sqlite3.Cursor = ctx['db']['cursor']
+
     cursor.execute(f"DELETE FROM products WHERE id=?", (id,))
 
 
 
     ctx['db']['commit']()
 
-def db_list_products(ctx:dict, offset:int=0, limit:int=25) -> list[Products]:
+def db_list_products(ctx:dict, offset:int=0, limit:int=25) -> dict:
     """
     list single models from the database, and verify each
 
@@ -129,7 +131,9 @@ def db_list_products(ctx:dict, offset:int=0, limit:int=25) -> list[Products]:
         offset :: the offset to start listing from.
         limit :: the maximum number of items to list.
     
-    return :: list of each item as a dict.
+    return :: dict with two keys:
+        total :: int of the total number of items.
+        items :: list of each item as a dict.
     """
     cursor:sqlite3.Cursor = ctx['db']['cursor']
     
@@ -150,4 +154,7 @@ def db_list_products(ctx:dict, offset:int=0, limit:int=25) -> list[Products]:
 
         ).validate())
 
-    return items
+    return {
+        'total': cursor.execute("SELECT COUNT(*) FROM products").fetchone()[0],
+        'items': items
+    }

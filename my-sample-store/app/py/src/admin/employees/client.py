@@ -41,6 +41,14 @@ def client_create_employees(ctx:dict, obj:Employees) -> Employees:
         with urlopen(request) as response:
             response_body = response.read().decode('utf-8')
             return Employees(**json.loads(response_body)).convert_types()
+        
+    except HTTPError as e:
+        if e.code == 401:
+            raise AuthenticationError('Error creating employees: authentication error')
+        elif e.code == 403:
+            raise ForbiddenError('Error creating employees: forbidden')
+
+        raise MSpecError(f'error creating employees: {e.__class__.__name__}: {e}')
 
     except (json.JSONDecodeError, KeyError) as e:
         raise MSpecError(f'invalid response from server, {e.__class__.__name__}: {e}')
@@ -192,7 +200,12 @@ def client_list_employees(ctx:dict, offset:int=0, limit:int=50) -> list[Employee
         with urlopen(request) as response:
             response_body = response.read().decode('utf-8')
 
-        return [Employees(**item).convert_types() for item in json.loads(response_body)]
+        response_data = json.loads(response_body)
+
+        return {
+            'total': response_data['total'],
+            'items': [Employees(**item).convert_types() for item in response_data['items']]
+        }
 
     except (json.JSONDecodeError, TypeError) as e:
         raise MSpecError(f'invalid response from server, {e.__class__.__name__}: {e}')

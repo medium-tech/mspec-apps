@@ -24,6 +24,12 @@ test('test - store - customers - pagination', async ({ page }) => {
 
 test('test - store - customers - instance', async ({ page }) => {
 
+
+
+    //
+    // test customers
+    //
+
     const textToContain = []
 
     // create item
@@ -87,6 +93,11 @@ test('test - store - customers - instance', async ({ page }) => {
 });
 
 test('test - store - customers - create random', async ({ page }) => {
+
+  //
+  // test create random customers
+  //
+
   await page.goto('http://localhost:7007/store/customers/create');
   
   await page.getByRole('button', { name: 'random' }).click();
