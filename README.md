@@ -17,7 +17,7 @@ The app in `./my-sample-store/app` was created by following the setup instructio
 
 After generating apps cd into `./app/py` and follow the instructions in the readme, then cd into `./app/browser1` and follow the instructions in that readme.
 
-## my-sample-store
+## simple social network
 The app in `./simple-social-network/app` was created by following the setup instructions above and then:
 
     cd simple-social-network

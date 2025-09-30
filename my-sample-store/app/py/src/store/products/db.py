@@ -28,7 +28,9 @@ def db_create_products(ctx:dict, obj:Products) -> Products:
     
     obj.validate()
     cursor:sqlite3.Cursor = ctx['db']['cursor']
+    
 
+    
 
     result = cursor.execute(
         "INSERT INTO products('in_stock', 'price', 'product_name') VALUES(?, ?, ?)",
@@ -39,6 +41,9 @@ def db_create_products(ctx:dict, obj:Products) -> Products:
     obj.id = str(result.lastrowid)
 
 
+
+
+    
 
     ctx['db']['commit']()
     return obj
@@ -63,15 +68,26 @@ def db_read_products(ctx:dict, id:str) -> Products:
 
 
     
+    
     return Products(
         id=str(entry[0]),
+        
+            
         in_stock=bool(entry[1]),
 
+            
+        
+            
         price=entry[2],
 
+            
+        
+            
         product_name=entry[3],
 
-
+            
+        
+        
     ).validate()
 
 def db_update_products(ctx:dict, obj:Products) -> Products:
@@ -90,6 +106,7 @@ def db_update_products(ctx:dict, obj:Products) -> Products:
     
     obj.validate()
     cursor:sqlite3.Cursor = ctx['db']['cursor']
+    
 
     result = cursor.execute(
         "UPDATE products SET 'in_stock'=?, 'price'=?, 'product_name'=? WHERE id=?",
@@ -97,6 +114,7 @@ def db_update_products(ctx:dict, obj:Products) -> Products:
     )
     if result.rowcount == 0:
         raise NotFoundError(f'products {obj.id} not found')
+
 
 
 
@@ -115,10 +133,13 @@ def db_delete_products(ctx:dict, id:str) -> None:
     """
 
     cursor:sqlite3.Cursor = ctx['db']['cursor']
+    
+
 
     cursor.execute(f"DELETE FROM products WHERE id=?", (id,))
 
 
+    
 
     ctx['db']['commit']()
 
@@ -141,17 +162,26 @@ def db_list_products(ctx:dict, offset:int=0, limit:int=25) -> dict:
     query = cursor.execute("SELECT * FROM products ORDER BY id LIMIT ? OFFSET ?", (limit, offset))
 
     for entry in query.fetchall():
-
         
         items.append(Products(
             id=str(entry[0]),
+            
+                
         in_stock=bool(entry[1]),
 
+                
+            
+                
         price=entry[2],
 
+                
+            
+                
         product_name=entry[3],
 
-
+                
+            
+            
         ).validate())
 
     return {

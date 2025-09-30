@@ -1,7 +1,10 @@
 uwsgi:
   http: :8008
   wsgi-file: src/core/server.py
-
+  master: true
+  safe-pidfile: src/core/server.pid
+  
+      
 
   # profile
   route: ^/user/profile/create static:../browser1/srv/user/profile/index.html
@@ -9,8 +12,9 @@ uwsgi:
   load-file-in-cache: ../browser1/srv/user/profile/index.html
   route: ^/user/profile/(.*) static:../browser1/srv/user/profile/instance.html
   load-file-in-cache: ../browser1/srv/user/profile/instance.html
-
-
+      
+  
+      
 
   # post
   route: ^/content/post/create static:../browser1/srv/content/post/index.html
@@ -18,8 +22,7 @@ uwsgi:
   load-file-in-cache: ../browser1/srv/content/post/index.html
   route: ^/content/post/(.*) static:../browser1/srv/content/post/instance.html
   load-file-in-cache: ../browser1/srv/content/post/instance.html
-
-
+      
 
   # event
   route: ^/content/event/create static:../browser1/srv/content/event/index.html
@@ -27,8 +30,8 @@ uwsgi:
   load-file-in-cache: ../browser1/srv/content/event/index.html
   route: ^/content/event/(.*) static:../browser1/srv/content/event/instance.html
   load-file-in-cache: ../browser1/srv/content/event/instance.html
-
-
+      
+  
 
 
   static-map: /=../browser1/srv/

@@ -15,11 +15,11 @@ __all__ = [
 class ContentIndexPage(tkinter.Frame):
 
     index_pages = (
-
+        
         (PostIndexPage, 'post'),
-
+        
         (EventIndexPage, 'event'),
-
+        
     )
 
     def __init__(self, parent, controller): 

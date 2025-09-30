@@ -23,7 +23,7 @@ parser = argparse.ArgumentParser(description='my_sample_store - store - cli')
 
 parser.add_argument('command', type=str, choices=[
     'data-seed',
-
+    
     'verify-products',
     'random-products',
     'example-products',
@@ -37,7 +37,7 @@ parser.add_argument('command', type=str, choices=[
     'client-update-products',
     'client-delete-products',
     'client-list-products',
-
+    
     'verify-customers',
     'random-customers',
     'example-customers',
@@ -51,7 +51,7 @@ parser.add_argument('command', type=str, choices=[
     'client-update-customers',
     'client-delete-customers',
     'client-list-customers',
-
+    
 ])
 
 parser.add_argument('--id', type=str, default=None)
@@ -81,11 +81,11 @@ cli_ctx.update(create_client_context())
 
 if args.command == 'data-seed':
     for _ in range(args.count):
-
+        
         db_create_products(cli_ctx, Products.random())
-
+        
         db_create_customers(cli_ctx, Customers.random())
-
+        
 
 
 elif args.command == 'verify-products':

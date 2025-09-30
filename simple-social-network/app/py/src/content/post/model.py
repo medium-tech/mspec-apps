@@ -13,11 +13,20 @@ __all__ = [
 
 
 
+    
+
+    
+
 
 
 field_list = [
-	'content',
-	'user_id'
+    
+    'content',
+
+    
+    'user_id',
+
+    
 ]
 
 longest_field_name_length = max([len(name) for name in field_list])
@@ -25,12 +34,23 @@ longest_field_name_length = max([len(name) for name in field_list])
 @dataclass
 class Post:
 
+    
+        
     content: str
+
+        
+    
+    
     user_id: str = ''
 
+    
     id: Optional[str] = None
 
     def convert_types(self) -> 'Post':
+
+        
+
+        
 
         return self
 
@@ -39,20 +59,22 @@ class Post:
         if not isinstance(self.id, str) and self.id is not None:
             raise TypeError('invalid type for id')
 
+
+        
         # user_id - str
 
         if not isinstance(self.user_id, str):
             raise TypeError('user_id must be a string')
         
 
+        
         # content - str
 
         if not isinstance(self.content, str):
             raise TypeError('content must be a string')
         
 
-
-
+        
 
         return self
 
@@ -68,12 +90,27 @@ class Post:
     @classmethod
     def example(cls) -> 'Post':
         return cls(
-			user_id='',
-			content='Just had an amazing day at the beach!'
+            
+                
+            user_id='',
+
+                
+            
+                
+			content='Just had an amazing day at the beach!',
+
+                
+            
         ) 
 
     @classmethod
     def random(cls) -> 'Post':
         return cls(
-			content=random_str()
+
+            
+                
+			content=random_str(),
+
+                
+            
         )

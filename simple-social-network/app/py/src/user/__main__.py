@@ -19,7 +19,7 @@ parser = argparse.ArgumentParser(description='simple_social_network - user - cli
 
 parser.add_argument('command', type=str, choices=[
     'data-seed',
-
+    
     'verify-profile',
     'random-profile',
     'example-profile',
@@ -33,7 +33,7 @@ parser.add_argument('command', type=str, choices=[
     'client-update-profile',
     'client-delete-profile',
     'client-list-profile',
-
+    
 ])
 
 parser.add_argument('--id', type=str, default=None)
@@ -63,9 +63,9 @@ cli_ctx.update(create_client_context())
 
 if args.command == 'data-seed':
     for _ in range(args.count):
-
+        
         db_create_profile(cli_ctx, Profile.random())
-
+        
 
 
 elif args.command == 'verify-profile':

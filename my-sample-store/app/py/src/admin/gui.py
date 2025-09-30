@@ -13,9 +13,9 @@ __all__ = [
 class AdminIndexPage(tkinter.Frame):
 
     index_pages = (
-
+        
         (EmployeesIndexPage, 'employees'),
-
+        
     )
 
     def __init__(self, parent, controller): 

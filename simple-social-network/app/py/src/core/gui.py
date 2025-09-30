@@ -7,11 +7,15 @@ from user.gui import UserIndexPage
 
 from content.gui import ContentIndexPage
 
+    
 from user.profile.gui import ProfileIndexPage, ProfileInstancePage
+    
 
+    
 from content.post.gui import PostIndexPage, PostInstancePage
-
+    
 from content.event.gui import EventIndexPage, EventInstancePage
+    
 
 
 def gui_main(start_frame='SimpleSocialNetworkIndexPage'):
@@ -26,33 +30,37 @@ class SimpleSocialNetworkIndexPage(tkinter.Frame):
         label = ttk.Label(self, text='simple social network', font=Fonts.heading1, style='Custom.TButton')
         label.grid(row=0, column=0)
 
-
+        
         button1 = ttk.Button(self, text='user', command=lambda: controller.show_frame(UserIndexPage), style='Custom.TButton')
         button1.grid(row=1, column=0)
-
+        
         button2 = ttk.Button(self, text='content', command=lambda: controller.show_frame(ContentIndexPage), style='Custom.TButton')
         button2.grid(row=2, column=0)
-
+        
 
 class SimpleSocialNetworkGUI(tkinter.Tk):
 
     frame_classes = (
         SimpleSocialNetworkIndexPage, 
-
+        
         UserIndexPage,
-
+        
         ContentIndexPage,
-
-
+        
+        
+            
         ProfileIndexPage,
         ProfileInstancePage,
-
+            
+        
+            
         PostIndexPage,
         PostInstancePage,
-
+            
         EventIndexPage,
         EventInstancePage,
-
+            
+        
     )
 
     def __init__(self, start_frame='SimpleSocialNetworkIndexPage'):

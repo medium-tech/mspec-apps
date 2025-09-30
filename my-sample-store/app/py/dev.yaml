@@ -1,7 +1,10 @@
 uwsgi:
   http: :7007
   wsgi-file: src/core/server.py
-
+  master: true
+  safe-pidfile: src/core/server.pid
+  
+      
 
   # products
   route: ^/store/products/create static:../browser1/srv/store/products/index.html
@@ -9,8 +12,7 @@ uwsgi:
   load-file-in-cache: ../browser1/srv/store/products/index.html
   route: ^/store/products/(.*) static:../browser1/srv/store/products/instance.html
   load-file-in-cache: ../browser1/srv/store/products/instance.html
-
-
+      
 
   # customers
   route: ^/store/customers/create static:../browser1/srv/store/customers/index.html
@@ -18,8 +20,9 @@ uwsgi:
   load-file-in-cache: ../browser1/srv/store/customers/index.html
   route: ^/store/customers/(.*) static:../browser1/srv/store/customers/instance.html
   load-file-in-cache: ../browser1/srv/store/customers/instance.html
-
-
+      
+  
+      
 
   # employees
   route: ^/admin/employees/create static:../browser1/srv/admin/employees/index.html
@@ -27,8 +30,8 @@ uwsgi:
   load-file-in-cache: ../browser1/srv/admin/employees/index.html
   route: ^/admin/employees/(.*) static:../browser1/srv/admin/employees/instance.html
   load-file-in-cache: ../browser1/srv/admin/employees/instance.html
-
-
+      
+  
 
 
   static-map: /=../browser1/srv/

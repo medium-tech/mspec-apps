@@ -60,30 +60,74 @@ def create_db_tables(ctx:dict) -> None:
     cursor.execute("CREATE TABLE IF NOT EXISTS user(id INTEGER PRIMARY KEY, name, email, profile)")
     cursor.execute("CREATE TABLE IF NOT EXISTS user_password_hash(id INTEGER PRIMARY KEY, user_id INTEGER REFERENCES user(id), hash)")
 
+    
+        
     #
     # single model
     #
+    profile_create_sql = "CREATE TABLE IF NOT EXISTS profile(id INTEGER PRIMARY KEY"
 
-    cursor.execute("CREATE TABLE IF NOT EXISTS profile(id INTEGER PRIMARY KEY, 'bio', 'user_id', 'username')")
+            
+    profile_create_sql += ", 'bio'"
 
+            
+    profile_create_sql += ", 'user_id'"
 
+            
+    profile_create_sql += ", 'username'"
+
+            
+    profile_create_sql += ')'
+    cursor.execute(profile_create_sql)
+
+            
+        
+    
+        
     #
     # single model
     #
+    post_create_sql = "CREATE TABLE IF NOT EXISTS post(id INTEGER PRIMARY KEY"
 
-    cursor.execute("CREATE TABLE IF NOT EXISTS post(id INTEGER PRIMARY KEY, 'content', 'user_id')")
+            
+    post_create_sql += ", 'content'"
 
+            
+    post_create_sql += ", 'user_id'"
 
+            
+    post_create_sql += ')'
+    cursor.execute(post_create_sql)
+
+            
+        
     #
     # single model
     #
+    event_create_sql = "CREATE TABLE IF NOT EXISTS event(id INTEGER PRIMARY KEY"
 
-    cursor.execute("CREATE TABLE IF NOT EXISTS event(id INTEGER PRIMARY KEY, 'description', 'event_date', 'event_name', 'location', 'user_id')")
+            
+    event_create_sql += ", 'description'"
 
+            
+    event_create_sql += ", 'event_date'"
 
+            
+    event_create_sql += ", 'event_name'"
 
+            
+    event_create_sql += ", 'location'"
 
+            
+    event_create_sql += ", 'user_id'"
 
+            
+    event_create_sql += ')'
+    cursor.execute(event_create_sql)
+
+            
+        
+    
 
 
     ctx['db']['commit']()

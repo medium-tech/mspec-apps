@@ -28,6 +28,7 @@ def db_create_event(ctx:dict, obj:Event) -> Event:
     
     obj.validate()
     cursor:sqlite3.Cursor = ctx['db']['cursor']
+    
     # must be logged in to make event
     user = ctx['auth']['get_user']()
     if obj.user_id != '' and obj.user_id != user.id:
@@ -36,7 +37,9 @@ def db_create_event(ctx:dict, obj:Event) -> Event:
     obj.user_id = user.id
     assert obj.user_id is not None
 
+    
 
+    
 
     result = cursor.execute(
         "INSERT INTO event('description', 'event_date', 'event_name', 'location', 'user_id') VALUES(?, ?, ?, ?, ?)",
@@ -47,6 +50,9 @@ def db_create_event(ctx:dict, obj:Event) -> Event:
     obj.id = str(result.lastrowid)
 
 
+
+
+    
 
     ctx['db']['commit']()
     return obj
@@ -71,19 +77,36 @@ def db_read_event(ctx:dict, id:str) -> Event:
 
 
     
+    
     return Event(
         id=str(entry[0]),
+        
+            
         description=entry[1],
 
+            
+        
+            
         event_date=datetime.strptime(entry[2], datetime_format_str).replace(microsecond=0),
 
+            
+        
+            
         event_name=entry[3],
 
+            
+        
+            
         location=entry[4],
 
-        user_id=entry[5],
+            
+        
+            
+        user_id=str(entry[5]),
 
-
+            
+        
+        
     ).validate()
 
 def db_update_event(ctx:dict, obj:Event) -> Event:
@@ -102,7 +125,12 @@ def db_update_event(ctx:dict, obj:Event) -> Event:
     
     obj.validate()
     cursor:sqlite3.Cursor = ctx['db']['cursor']
+    
+    user = ctx['auth']['get_user']()
+    if obj.user_id != user.id:
+        raise ForbiddenError('not allowed to update this event')
 
+    
 
     result = cursor.execute(
         "UPDATE event SET 'description'=?, 'event_date'=?, 'event_name'=?, 'location'=?, 'user_id'=? WHERE id=?",
@@ -110,6 +138,7 @@ def db_update_event(ctx:dict, obj:Event) -> Event:
     )
     if result.rowcount == 0:
         raise NotFoundError(f'event {obj.id} not found')
+
 
 
 
@@ -128,11 +157,23 @@ def db_delete_event(ctx:dict, id:str) -> None:
     """
 
     cursor:sqlite3.Cursor = ctx['db']['cursor']
+    
+    user = ctx['auth']['get_user']()
+    try:
+        obj = db_read_event(ctx, id)
+    except NotFoundError:
+        return
+
+    if obj.user_id != user.id:
+        raise ForbiddenError('not allowed to delete this event')
+
+    
 
 
     cursor.execute(f"DELETE FROM event WHERE id=?", (id,))
 
 
+    
 
     ctx['db']['commit']()
 
@@ -155,21 +196,36 @@ def db_list_event(ctx:dict, offset:int=0, limit:int=25) -> dict:
     query = cursor.execute("SELECT * FROM event ORDER BY id LIMIT ? OFFSET ?", (limit, offset))
 
     for entry in query.fetchall():
-
         
         items.append(Event(
             id=str(entry[0]),
+            
+                
         description=entry[1],
 
+                
+            
+                
         event_date=datetime.strptime(entry[2], datetime_format_str).replace(microsecond=0),
 
+                
+            
+                
         event_name=entry[3],
 
+                
+            
+                
         location=entry[4],
 
-        user_id=entry[5],
+                
+            
+                
+        user_id=str(entry[5]),
 
-
+                
+            
+            
         ).validate())
 
     return {

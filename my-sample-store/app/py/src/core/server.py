@@ -11,12 +11,15 @@ from core.models import *
 from core.db import *
 from core.exceptions import RequestError, JSONResponse, PlainTextResponse, NotFoundError, AuthenticationError, ForbiddenError
 
+    
 from store.products.server import products_routes
-
+    
 from store.customers.server import customers_routes
+    
 
+    
 from admin.employees.server import employees_routes
-
+    
 
 
 import uwsgi
@@ -120,13 +123,17 @@ def user_routes(ctx:dict, env:dict, raw_req_body:bytes):
 route_list = [
     auth_routes,
     user_routes,
-
+    
+        
     products_routes,
-
+        
     customers_routes,
-
+        
+    
+        
     employees_routes,
-
+        
+    
 ]
 
 server_ctx = {

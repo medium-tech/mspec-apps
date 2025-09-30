@@ -7,11 +7,15 @@ from store.gui import StoreIndexPage
 
 from admin.gui import AdminIndexPage
 
+    
 from store.products.gui import ProductsIndexPage, ProductsInstancePage
-
+    
 from store.customers.gui import CustomersIndexPage, CustomersInstancePage
+    
 
+    
 from admin.employees.gui import EmployeesIndexPage, EmployeesInstancePage
+    
 
 
 def gui_main(start_frame='MySampleStoreIndexPage'):
@@ -26,33 +30,37 @@ class MySampleStoreIndexPage(tkinter.Frame):
         label = ttk.Label(self, text='my sample store', font=Fonts.heading1, style='Custom.TButton')
         label.grid(row=0, column=0)
 
-
+        
         button1 = ttk.Button(self, text='store', command=lambda: controller.show_frame(StoreIndexPage), style='Custom.TButton')
         button1.grid(row=1, column=0)
-
+        
         button2 = ttk.Button(self, text='admin', command=lambda: controller.show_frame(AdminIndexPage), style='Custom.TButton')
         button2.grid(row=2, column=0)
-
+        
 
 class MySampleStoreGUI(tkinter.Tk):
 
     frame_classes = (
         MySampleStoreIndexPage, 
-
+        
         StoreIndexPage,
-
+        
         AdminIndexPage,
-
-
+        
+        
+            
         ProductsIndexPage,
         ProductsInstancePage,
-
+            
         CustomersIndexPage,
         CustomersInstancePage,
-
+            
+        
+            
         EmployeesIndexPage,
         EmployeesInstancePage,
-
+            
+        
     )
 
     def __init__(self, start_frame='MySampleStoreIndexPage'):

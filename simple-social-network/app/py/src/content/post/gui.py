@@ -85,13 +85,15 @@ class PostIndexPage(tkinter.Frame):
             header.grid(row=self.list_items_row_offset - 1, column=n)
 
         try:
-            items = client_list_post(self.app.ctx, offset=self.list_offset, limit=self.list_page_size)
+            list_response = client_list_post(self.app.ctx, offset=self.list_offset, limit=self.list_page_size)
         except Exception as e:
             print(e)
             self.list_status.set('status: 🔴')
             return
         
-        self.pagination_label.set(f'offset: {self.list_offset} limit: {self.list_page_size} results: {len(items)}')
+        items = list_response['items']
+        
+        self.pagination_label.set(f'offset: {self.list_offset} limit: {self.list_page_size} count: {len(items)} total: {list_response["total"]}')
         
         self.list_status.set('status: 🟢')
 
@@ -122,23 +124,25 @@ class PostIndexPage(tkinter.Frame):
             id_text.insert(tkinter.END, item_id)
             id_text.grid(row=n + self.list_items_row_offset, column=1, padx=padx)
 
-            # user_id - str
-            user_id_text = tkinter.Text(self.table, height=1, width=20, highlightthickness=0)
-            user_id_text.insert(tkinter.END, getattr(item, 'user_id', '-'))
-            user_id_text.grid(row=n + self.list_items_row_offset, column=2, padx=padx)
 
+
+
+
+
+
+            
             # content - str
             content_text = tkinter.Text(self.table, height=1, width=20, highlightthickness=0)
             content_text.insert(tkinter.END, getattr(item, 'content', '-'))
-            content_text.grid(row=n + self.list_items_row_offset, column=3, padx=padx)
+            content_text.grid(row=n + self.list_items_row_offset, column=2, padx=padx)
 
+            
+            # user_id - str
+            user_id_text = tkinter.Text(self.table, height=1, width=20, highlightthickness=0)
+            user_id_text.insert(tkinter.END, getattr(item, 'user_id', '-'))
+            user_id_text.grid(row=n + self.list_items_row_offset, column=3, padx=padx)
 
-
-
-
-
-
-
+            
 
         if self.list_offset == 0:
             self.prev_pg_button.state(['disabled'])

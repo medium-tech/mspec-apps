@@ -15,11 +15,11 @@ __all__ = [
 class StoreIndexPage(tkinter.Frame):
 
     index_pages = (
-
+        
         (ProductsIndexPage, 'products'),
-
+        
         (CustomersIndexPage, 'customers'),
-
+        
     )
 
     def __init__(self, parent, controller): 

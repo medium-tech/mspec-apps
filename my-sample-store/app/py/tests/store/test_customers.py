@@ -16,11 +16,25 @@ def test_ctx_init() -> dict:
     ctx.update(create_client_context())
     return ctx
 
+# create user for auth testing
+def new_user() -> tuple[dict, User]:
+    new_ctx = test_ctx_init()
+    user = CreateUser(
+        name='Test Customers Auth',
+        email=f'test-customers-auth-{time.time()}@email.com',
+        password1='my-test-password',
+        password2='my-test-password',
+    )
+    created_user = client_create_user(new_ctx, user)
+    login_ctx = client_login(new_ctx, created_user.email, user.password1)
+    return login_ctx, created_user
 
 
 class TestCustomers(unittest.TestCase):
 
+    
 
+    
 
     def test_customers_crud(self):
         """
@@ -33,7 +47,7 @@ class TestCustomers(unittest.TestCase):
         """
 
         crud_ctx = test_ctx_init()
-
+        
 
         test_customers = Customers.example()
         try:
@@ -79,7 +93,7 @@ class TestCustomers(unittest.TestCase):
         fetched_item = cursor.execute(f"SELECT * FROM customers WHERE id=?", (created_customers.id,)).fetchone()
         self.assertIsNone(fetched_item)
 
-
+        
 
     def test_customers_pagination(self):
 
@@ -92,8 +106,9 @@ class TestCustomers(unittest.TestCase):
         
         if total_items < 15:
             seed_ctx = create_client_context()
+            
             while total_items < 15:
-
+                
                 item = Customers.random()
                 client_create_customers(seed_ctx, item)
                 total_items += 1

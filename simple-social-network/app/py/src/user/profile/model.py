@@ -13,12 +13,25 @@ __all__ = [
 
 
 
+    
+
+    
+
+    
+
 
 
 field_list = [
-	'bio',
-	'user_id',
-	'username'
+    
+    'bio',
+
+    
+    'user_id',
+
+    
+    'username',
+
+    
 ]
 
 longest_field_name_length = max([len(name) for name in field_list])
@@ -26,13 +39,28 @@ longest_field_name_length = max([len(name) for name in field_list])
 @dataclass
 class Profile:
 
-    username: str
+    
+        
     bio: str
+
+        
+    
+        
+    username: str
+
+        
+    
+    
     user_id: str = ''
 
+    
     id: Optional[str] = None
 
     def convert_types(self) -> 'Profile':
+
+        
+
+        
 
         return self
 
@@ -41,26 +69,29 @@ class Profile:
         if not isinstance(self.id, str) and self.id is not None:
             raise TypeError('invalid type for id')
 
+
+        
         # user_id - str
 
         if not isinstance(self.user_id, str):
             raise TypeError('user_id must be a string')
         
 
+        
         # username - str
 
         if not isinstance(self.username, str):
             raise TypeError('username must be a string')
         
 
+        
         # bio - str
 
         if not isinstance(self.bio, str):
             raise TypeError('bio must be a string')
         
 
-
-
+        
 
         return self
 
@@ -76,14 +107,37 @@ class Profile:
     @classmethod
     def example(cls) -> 'Profile':
         return cls(
-			user_id='',
+            
+                
+            user_id='',
+
+                
+            
+                
 			username='alice',
-			bio='Loves hiking and outdoor adventures.'
+
+                
+            
+                
+			bio='Loves hiking and outdoor adventures.',
+
+                
+            
         ) 
 
     @classmethod
     def random(cls) -> 'Profile':
         return cls(
+
+            
+                
 			username=random_str(),
-			bio=random_str()
+
+                
+            
+                
+			bio=random_str(),
+
+                
+            
         )

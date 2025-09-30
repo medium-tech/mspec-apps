@@ -11,12 +11,15 @@ from core.models import *
 from core.db import *
 from core.exceptions import RequestError, JSONResponse, PlainTextResponse, NotFoundError, AuthenticationError, ForbiddenError
 
+    
 from user.profile.server import profile_routes
+    
 
+    
 from content.post.server import post_routes
-
+    
 from content.event.server import event_routes
-
+    
 
 
 import uwsgi
@@ -120,13 +123,17 @@ def user_routes(ctx:dict, env:dict, raw_req_body:bytes):
 route_list = [
     auth_routes,
     user_routes,
-
+    
+        
     profile_routes,
-
+        
+    
+        
     post_routes,
-
+        
     event_routes,
-
+        
+    
 ]
 
 server_ctx = {

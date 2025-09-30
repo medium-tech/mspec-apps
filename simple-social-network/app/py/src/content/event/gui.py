@@ -85,13 +85,15 @@ class EventIndexPage(tkinter.Frame):
             header.grid(row=self.list_items_row_offset - 1, column=n)
 
         try:
-            items = client_list_event(self.app.ctx, offset=self.list_offset, limit=self.list_page_size)
+            list_response = client_list_event(self.app.ctx, offset=self.list_offset, limit=self.list_page_size)
         except Exception as e:
             print(e)
             self.list_status.set('status: 🔴')
             return
         
-        self.pagination_label.set(f'offset: {self.list_offset} limit: {self.list_page_size} results: {len(items)}')
+        items = list_response['items']
+        
+        self.pagination_label.set(f'offset: {self.list_offset} limit: {self.list_page_size} count: {len(items)} total: {list_response["total"]}')
         
         self.list_status.set('status: 🟢')
 
@@ -122,41 +124,46 @@ class EventIndexPage(tkinter.Frame):
             id_text.insert(tkinter.END, item_id)
             id_text.grid(row=n + self.list_items_row_offset, column=1, padx=padx)
 
-            # user_id - str
-            user_id_text = tkinter.Text(self.table, height=1, width=20, highlightthickness=0)
-            user_id_text.insert(tkinter.END, getattr(item, 'user_id', '-'))
-            user_id_text.grid(row=n + self.list_items_row_offset, column=2, padx=padx)
 
-            # event_name - str
-            event_name_text = tkinter.Text(self.table, height=1, width=20, highlightthickness=0)
-            event_name_text.insert(tkinter.END, getattr(item, 'event_name', '-'))
-            event_name_text.grid(row=n + self.list_items_row_offset, column=3, padx=padx)
 
+
+
+
+
+            
+            # description - str
+            description_text = tkinter.Text(self.table, height=1, width=20, highlightthickness=0)
+            description_text.insert(tkinter.END, getattr(item, 'description', '-'))
+            description_text.grid(row=n + self.list_items_row_offset, column=2, padx=padx)
+
+            
             # event_date - datetime
             event_date_text = tkinter.Text(self.table, height=1, width=20, highlightthickness=0)
             event_date_value = getattr(item, 'event_date', '-')
             if event_date_value != '-':
                 event_date_value = event_date_value.strftime('%Y-%m-%d %H:%M:%S')
             event_date_text.insert(tkinter.END, str(event_date_value))
-            event_date_text.grid(row=n + self.list_items_row_offset, column=4, padx=padx)
+            event_date_text.grid(row=n + self.list_items_row_offset, column=3, padx=padx)
 
+            
+            # event_name - str
+            event_name_text = tkinter.Text(self.table, height=1, width=20, highlightthickness=0)
+            event_name_text.insert(tkinter.END, getattr(item, 'event_name', '-'))
+            event_name_text.grid(row=n + self.list_items_row_offset, column=4, padx=padx)
+
+            
             # location - str
             location_text = tkinter.Text(self.table, height=1, width=20, highlightthickness=0)
             location_text.insert(tkinter.END, getattr(item, 'location', '-'))
             location_text.grid(row=n + self.list_items_row_offset, column=5, padx=padx)
 
-            # description - str
-            description_text = tkinter.Text(self.table, height=1, width=20, highlightthickness=0)
-            description_text.insert(tkinter.END, getattr(item, 'description', '-'))
-            description_text.grid(row=n + self.list_items_row_offset, column=6, padx=padx)
+            
+            # user_id - str
+            user_id_text = tkinter.Text(self.table, height=1, width=20, highlightthickness=0)
+            user_id_text.insert(tkinter.END, getattr(item, 'user_id', '-'))
+            user_id_text.grid(row=n + self.list_items_row_offset, column=6, padx=padx)
 
-
-
-
-
-
-
-
+            
 
         if self.list_offset == 0:
             self.prev_pg_button.state(['disabled'])

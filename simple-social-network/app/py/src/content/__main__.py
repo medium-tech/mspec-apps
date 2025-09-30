@@ -23,7 +23,7 @@ parser = argparse.ArgumentParser(description='simple_social_network - content - 
 
 parser.add_argument('command', type=str, choices=[
     'data-seed',
-
+    
     'verify-post',
     'random-post',
     'example-post',
@@ -37,7 +37,7 @@ parser.add_argument('command', type=str, choices=[
     'client-update-post',
     'client-delete-post',
     'client-list-post',
-
+    
     'verify-event',
     'random-event',
     'example-event',
@@ -51,7 +51,7 @@ parser.add_argument('command', type=str, choices=[
     'client-update-event',
     'client-delete-event',
     'client-list-event',
-
+    
 ])
 
 parser.add_argument('--id', type=str, default=None)
@@ -81,11 +81,11 @@ cli_ctx.update(create_client_context())
 
 if args.command == 'data-seed':
     for _ in range(args.count):
-
+        
         db_create_post(cli_ctx, Post.random())
-
+        
         db_create_event(cli_ctx, Event.random())
-
+        
 
 
 elif args.command == 'verify-post':

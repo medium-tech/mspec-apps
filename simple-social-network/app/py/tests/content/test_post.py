@@ -30,9 +30,9 @@ def new_user() -> tuple[dict, User]:
     return login_ctx, created_user
 
 
-
 class TestPost(unittest.TestCase):
 
+    
     def test_post_auth(self):
         test_post = Post.example()
         test_post.validate()
@@ -42,7 +42,9 @@ class TestPost(unittest.TestCase):
         # should not be able to create post if logged out #
         self.assertRaises(AuthenticationError, client_create_post, logged_out_ctx, test_post)
 
+    
 
+    
 
     def test_post_crud(self):
         """
@@ -55,10 +57,11 @@ class TestPost(unittest.TestCase):
         """
 
         crud_ctx = test_ctx_init()
+        
         new_user_ctx, _user = new_user()
         crud_ctx.update(new_user_ctx)
 
-
+        
 
         test_post = Post.example()
         try:
@@ -104,7 +107,7 @@ class TestPost(unittest.TestCase):
         fetched_item = cursor.execute(f"SELECT * FROM post WHERE id=?", (created_post.id,)).fetchone()
         self.assertIsNone(fetched_item)
 
-
+        
 
     def test_post_pagination(self):
 
@@ -117,13 +120,13 @@ class TestPost(unittest.TestCase):
         
         if total_items < 15:
             seed_ctx = create_client_context()
+            
+            new_user_ctx, _user = new_user()
+            seed_ctx.update(new_user_ctx)
+
+            
             while total_items < 15:
-                # create new user(s) to avoid max models per user limits
-                if total_items % 1 == 0:
-                    new_user_ctx, _user = new_user()
-                    seed_ctx.update(new_user_ctx)
-
-
+                
                 item = Post.random()
                 client_create_post(seed_ctx, item)
                 total_items += 1

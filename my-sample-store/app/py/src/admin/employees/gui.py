@@ -85,13 +85,15 @@ class EmployeesIndexPage(tkinter.Frame):
             header.grid(row=self.list_items_row_offset - 1, column=n)
 
         try:
-            items = client_list_employees(self.app.ctx, offset=self.list_offset, limit=self.list_page_size)
+            list_response = client_list_employees(self.app.ctx, offset=self.list_offset, limit=self.list_page_size)
         except Exception as e:
             print(e)
             self.list_status.set('status: 🔴')
             return
         
-        self.pagination_label.set(f'offset: {self.list_offset} limit: {self.list_page_size} results: {len(items)}')
+        items = list_response['items']
+        
+        self.pagination_label.set(f'offset: {self.list_offset} limit: {self.list_page_size} count: {len(items)} total: {list_response["total"]}')
         
         self.list_status.set('status: 🟢')
 
@@ -122,43 +124,49 @@ class EmployeesIndexPage(tkinter.Frame):
             id_text.insert(tkinter.END, item_id)
             id_text.grid(row=n + self.list_items_row_offset, column=1, padx=padx)
 
+
+
+
+
+
+
+            
+            # email - str
+            email_text = tkinter.Text(self.table, height=1, width=20, highlightthickness=0)
+            email_text.insert(tkinter.END, getattr(item, 'email', '-'))
+            email_text.grid(row=n + self.list_items_row_offset, column=2, padx=padx)
+
+            
             # employee_name - str
             employee_name_text = tkinter.Text(self.table, height=1, width=20, highlightthickness=0)
             employee_name_text.insert(tkinter.END, getattr(item, 'employee_name', '-'))
-            employee_name_text.grid(row=n + self.list_items_row_offset, column=2, padx=padx)
+            employee_name_text.grid(row=n + self.list_items_row_offset, column=3, padx=padx)
 
-            # position - str
-            position_text = tkinter.Text(self.table, height=1, width=20, highlightthickness=0)
-            position_text.insert(tkinter.END, getattr(item, 'position', '-'))
-            position_text.grid(row=n + self.list_items_row_offset, column=3, padx=padx)
-
+            
             # hire_date - str
             hire_date_text = tkinter.Text(self.table, height=1, width=20, highlightthickness=0)
             hire_date_text.insert(tkinter.END, getattr(item, 'hire_date', '-'))
             hire_date_text.grid(row=n + self.list_items_row_offset, column=4, padx=padx)
 
-            # email - str
-            email_text = tkinter.Text(self.table, height=1, width=20, highlightthickness=0)
-            email_text.insert(tkinter.END, getattr(item, 'email', '-'))
-            email_text.grid(row=n + self.list_items_row_offset, column=5, padx=padx)
-
+            
             # phone_number - str
             phone_number_text = tkinter.Text(self.table, height=1, width=20, highlightthickness=0)
             phone_number_text.insert(tkinter.END, getattr(item, 'phone_number', '-'))
-            phone_number_text.grid(row=n + self.list_items_row_offset, column=6, padx=padx)
+            phone_number_text.grid(row=n + self.list_items_row_offset, column=5, padx=padx)
 
+            
+            # position - str
+            position_text = tkinter.Text(self.table, height=1, width=15, highlightthickness=0)
+            position_text.insert(tkinter.END, getattr(item, 'position', '-'))
+            position_text.grid(row=n + self.list_items_row_offset, column=6, padx=padx)
+
+            
             # salary - float
             salary_text = tkinter.Text(self.table, height=1, width=10, highlightthickness=0)
             salary_text.insert(tkinter.END, str(getattr(item, 'salary', '-')))
             salary_text.grid(row=n + self.list_items_row_offset, column=7, padx=padx)
 
-
-
-
-
-
-
-
+            
 
         if self.list_offset == 0:
             self.prev_pg_button.state(['disabled'])

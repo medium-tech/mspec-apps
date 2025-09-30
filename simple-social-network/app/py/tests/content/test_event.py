@@ -30,9 +30,9 @@ def new_user() -> tuple[dict, User]:
     return login_ctx, created_user
 
 
-
 class TestEvent(unittest.TestCase):
 
+    
     def test_event_auth(self):
         test_event = Event.example()
         test_event.validate()
@@ -42,7 +42,9 @@ class TestEvent(unittest.TestCase):
         # should not be able to create event if logged out #
         self.assertRaises(AuthenticationError, client_create_event, logged_out_ctx, test_event)
 
+    
 
+    
 
     def test_event_crud(self):
         """
@@ -55,10 +57,11 @@ class TestEvent(unittest.TestCase):
         """
 
         crud_ctx = test_ctx_init()
+        
         new_user_ctx, _user = new_user()
         crud_ctx.update(new_user_ctx)
 
-
+        
 
         test_event = Event.example()
         try:
@@ -104,7 +107,7 @@ class TestEvent(unittest.TestCase):
         fetched_item = cursor.execute(f"SELECT * FROM event WHERE id=?", (created_event.id,)).fetchone()
         self.assertIsNone(fetched_item)
 
-
+        
 
     def test_event_pagination(self):
 
@@ -117,13 +120,13 @@ class TestEvent(unittest.TestCase):
         
         if total_items < 15:
             seed_ctx = create_client_context()
+            
+            new_user_ctx, _user = new_user()
+            seed_ctx.update(new_user_ctx)
+
+            
             while total_items < 15:
-                # create new user(s) to avoid max models per user limits
-                if total_items % 1 == 0:
-                    new_user_ctx, _user = new_user()
-                    seed_ctx.update(new_user_ctx)
-
-
+                
                 item = Event.random()
                 client_create_event(seed_ctx, item)
                 total_items += 1

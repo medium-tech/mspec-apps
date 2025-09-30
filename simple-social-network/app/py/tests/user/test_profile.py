@@ -30,9 +30,9 @@ def new_user() -> tuple[dict, User]:
     return login_ctx, created_user
 
 
-
 class TestProfile(unittest.TestCase):
 
+    
     def test_profile_auth(self):
         test_profile = Profile.example()
         test_profile.validate()
@@ -42,6 +42,9 @@ class TestProfile(unittest.TestCase):
         # should not be able to create profile if logged out #
         self.assertRaises(AuthenticationError, client_create_profile, logged_out_ctx, test_profile)
 
+    
+
+    
     def test_profile_auth_max_models(self):
 
         max_models_ctx, _user = new_user()
@@ -51,7 +54,7 @@ class TestProfile(unittest.TestCase):
 
         self.assertRaises(Exception, client_create_profile, max_models_ctx, Profile.example())
 
-
+    
 
     def test_profile_crud(self):
         """
@@ -64,10 +67,11 @@ class TestProfile(unittest.TestCase):
         """
 
         crud_ctx = test_ctx_init()
+        
         new_user_ctx, _user = new_user()
         crud_ctx.update(new_user_ctx)
 
-
+        
 
         test_profile = Profile.example()
         try:
@@ -113,7 +117,7 @@ class TestProfile(unittest.TestCase):
         fetched_item = cursor.execute(f"SELECT * FROM profile WHERE id=?", (created_profile.id,)).fetchone()
         self.assertIsNone(fetched_item)
 
-
+        
 
     def test_profile_pagination(self):
 
@@ -126,13 +130,19 @@ class TestProfile(unittest.TestCase):
         
         if total_items < 15:
             seed_ctx = create_client_context()
+            
+            new_user_ctx, _user = new_user()
+            seed_ctx.update(new_user_ctx)
+
+            
             while total_items < 15:
+                
                 # create new user(s) to avoid max models per user limits
                 if total_items % 1 == 0:
                     new_user_ctx, _user = new_user()
                     seed_ctx.update(new_user_ctx)
 
-
+                
                 item = Profile.random()
                 client_create_profile(seed_ctx, item)
                 total_items += 1

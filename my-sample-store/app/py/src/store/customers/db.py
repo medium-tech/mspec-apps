@@ -28,7 +28,9 @@ def db_create_customers(ctx:dict, obj:Customers) -> Customers:
     
     obj.validate()
     cursor:sqlite3.Cursor = ctx['db']['cursor']
+    
 
+    
 
     result = cursor.execute(
         "INSERT INTO customers('customer_name', 'email', 'phone_number') VALUES(?, ?, ?)",
@@ -39,6 +41,9 @@ def db_create_customers(ctx:dict, obj:Customers) -> Customers:
     obj.id = str(result.lastrowid)
 
 
+
+
+    
 
     ctx['db']['commit']()
     return obj
@@ -63,15 +68,26 @@ def db_read_customers(ctx:dict, id:str) -> Customers:
 
 
     
+    
     return Customers(
         id=str(entry[0]),
+        
+            
         customer_name=entry[1],
 
+            
+        
+            
         email=entry[2],
 
+            
+        
+            
         phone_number=entry[3],
 
-
+            
+        
+        
     ).validate()
 
 def db_update_customers(ctx:dict, obj:Customers) -> Customers:
@@ -90,6 +106,7 @@ def db_update_customers(ctx:dict, obj:Customers) -> Customers:
     
     obj.validate()
     cursor:sqlite3.Cursor = ctx['db']['cursor']
+    
 
     result = cursor.execute(
         "UPDATE customers SET 'customer_name'=?, 'email'=?, 'phone_number'=? WHERE id=?",
@@ -97,6 +114,7 @@ def db_update_customers(ctx:dict, obj:Customers) -> Customers:
     )
     if result.rowcount == 0:
         raise NotFoundError(f'customers {obj.id} not found')
+
 
 
 
@@ -115,10 +133,13 @@ def db_delete_customers(ctx:dict, id:str) -> None:
     """
 
     cursor:sqlite3.Cursor = ctx['db']['cursor']
+    
+
 
     cursor.execute(f"DELETE FROM customers WHERE id=?", (id,))
 
 
+    
 
     ctx['db']['commit']()
 
@@ -141,17 +162,26 @@ def db_list_customers(ctx:dict, offset:int=0, limit:int=25) -> dict:
     query = cursor.execute("SELECT * FROM customers ORDER BY id LIMIT ? OFFSET ?", (limit, offset))
 
     for entry in query.fetchall():
-
         
         items.append(Customers(
             id=str(entry[0]),
+            
+                
         customer_name=entry[1],
 
+                
+            
+                
         email=entry[2],
 
+                
+            
+                
         phone_number=entry[3],
 
-
+                
+            
+            
         ).validate())
 
     return {

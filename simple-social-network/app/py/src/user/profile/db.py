@@ -28,6 +28,7 @@ def db_create_profile(ctx:dict, obj:Profile) -> Profile:
     
     obj.validate()
     cursor:sqlite3.Cursor = ctx['db']['cursor']
+    
     # must be logged in to make profile
     user = ctx['auth']['get_user']()
     if obj.user_id != '' and obj.user_id != user.id:
@@ -36,13 +37,16 @@ def db_create_profile(ctx:dict, obj:Profile) -> Profile:
     obj.user_id = user.id
     assert obj.user_id is not None
 
+    
 
+    
     # each user can only create a maximum of 1 profile(s)
     cursor.execute("SELECT COUNT(*) FROM profile WHERE user_id=?", (user.id,))
     count = cursor.fetchone()[0]
     if count >= 1:
         raise ValueError('user has reached the maximum number of profile(s)')
 
+    
 
     result = cursor.execute(
         "INSERT INTO profile('bio', 'user_id', 'username') VALUES(?, ?, ?)",
@@ -53,6 +57,9 @@ def db_create_profile(ctx:dict, obj:Profile) -> Profile:
     obj.id = str(result.lastrowid)
 
 
+
+
+    
 
     ctx['db']['commit']()
     return obj
@@ -77,15 +84,26 @@ def db_read_profile(ctx:dict, id:str) -> Profile:
 
 
     
+    
     return Profile(
         id=str(entry[0]),
+        
+            
         bio=entry[1],
 
-        user_id=entry[2],
+            
+        
+            
+        user_id=str(entry[2]),
 
+            
+        
+            
         username=entry[3],
 
-
+            
+        
+        
     ).validate()
 
 def db_update_profile(ctx:dict, obj:Profile) -> Profile:
@@ -104,7 +122,12 @@ def db_update_profile(ctx:dict, obj:Profile) -> Profile:
     
     obj.validate()
     cursor:sqlite3.Cursor = ctx['db']['cursor']
+    
+    user = ctx['auth']['get_user']()
+    if obj.user_id != user.id:
+        raise ForbiddenError('not allowed to update this profile')
 
+    
 
     result = cursor.execute(
         "UPDATE profile SET 'bio'=?, 'user_id'=?, 'username'=? WHERE id=?",
@@ -112,6 +135,7 @@ def db_update_profile(ctx:dict, obj:Profile) -> Profile:
     )
     if result.rowcount == 0:
         raise NotFoundError(f'profile {obj.id} not found')
+
 
 
 
@@ -130,11 +154,23 @@ def db_delete_profile(ctx:dict, id:str) -> None:
     """
 
     cursor:sqlite3.Cursor = ctx['db']['cursor']
+    
+    user = ctx['auth']['get_user']()
+    try:
+        obj = db_read_profile(ctx, id)
+    except NotFoundError:
+        return
+
+    if obj.user_id != user.id:
+        raise ForbiddenError('not allowed to delete this profile')
+
+    
 
 
     cursor.execute(f"DELETE FROM profile WHERE id=?", (id,))
 
 
+    
 
     ctx['db']['commit']()
 
@@ -157,17 +193,26 @@ def db_list_profile(ctx:dict, offset:int=0, limit:int=25) -> dict:
     query = cursor.execute("SELECT * FROM profile ORDER BY id LIMIT ? OFFSET ?", (limit, offset))
 
     for entry in query.fetchall():
-
         
         items.append(Profile(
             id=str(entry[0]),
+            
+                
         bio=entry[1],
 
-        user_id=entry[2],
+                
+            
+                
+        user_id=str(entry[2]),
 
+                
+            
+                
         username=entry[3],
 
-
+                
+            
+            
         ).validate())
 
     return {

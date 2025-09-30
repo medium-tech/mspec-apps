@@ -11,23 +11,57 @@ __all__ = [
 ]
 
 
+
+
+    
+
+    
 position_options = [
+
+            
     'Manager', 
+
+            
     'Sales', 
+
+            
     'Support', 
+
+            
 ]
 
+    
 
+    
+
+    
+
+    
+
+    
 
 
 
 field_list = [
-	'email',
-	'employee_name',
-	'hire_date',
-	'phone_number',
-	'position',
-	'salary'
+    
+    'email',
+
+    
+    'employee_name',
+
+    
+    'hire_date',
+
+    
+    'phone_number',
+
+    
+    'position',
+
+    
+    'salary',
+
+    
 ]
 
 longest_field_name_length = max([len(name) for name in field_list])
@@ -35,16 +69,45 @@ longest_field_name_length = max([len(name) for name in field_list])
 @dataclass
 class Employees:
 
-    employee_name: str
-    position: str
-    hire_date: str
+    
+        
     email: str
+
+        
+    
+        
+    employee_name: str
+
+        
+    
+        
+    hire_date: str
+
+        
+    
+        
     phone_number: str
+
+        
+    
+        
+    position: str
+
+        
+    
+        
     salary: float
 
+        
+    
+    
     id: Optional[str] = None
 
     def convert_types(self) -> 'Employees':
+
+        
+
+        
 
         return self
 
@@ -53,44 +116,50 @@ class Employees:
         if not isinstance(self.id, str) and self.id is not None:
             raise TypeError('invalid type for id')
 
+
+        
         # employee_name - str
 
         if not isinstance(self.employee_name, str):
             raise TypeError('employee_name must be a string')
         
 
+        
         # position - str enum
 
         if self.position not in position_options:
             raise TypeError('invalid enum option for position')
 
 
+        
         # hire_date - str
 
         if not isinstance(self.hire_date, str):
             raise TypeError('hire_date must be a string')
         
 
+        
         # email - str
 
         if not isinstance(self.email, str):
             raise TypeError('email must be a string')
         
 
+        
         # phone_number - str
 
         if not isinstance(self.phone_number, str):
             raise TypeError('phone_number must be a string')
         
 
+        
         # salary - float
 
         if not isinstance(self.salary, float):
             raise TypeError('salary must be a float')
 
 
-
-
+        
 
         return self
 
@@ -106,21 +175,72 @@ class Employees:
     @classmethod
     def example(cls) -> 'Employees':
         return cls(
+            
+                
 			employee_name='David',
+
+                
+            
+                
 			position='Manager',
+
+                
+            
+                
 			hire_date='2000-01-11T12:34:56',
+
+                
+            
+                
 			email='my-name@email.com',
+
+                
+            
+                
 			phone_number='+1 (123) 456-7890',
-			salary=60000.0
+
+                
+            
+                
+			salary=60000.0,
+
+                
+            
         ) 
 
     @classmethod
     def random(cls) -> 'Employees':
         return cls(
-			employee_name=random_person_name(),
+
+            
+                
+            employee_name=random_person_name(),
+
+                
+            
+                
 			position=random_str_enum(position_options),
+
+                
+            
+                
 			hire_date=random_str(),
-			email=random_email(),
-			phone_number=random_phone_number(),
-			salary=random_float()
+
+                
+            
+                
+            email=random_email(),
+
+                
+            
+                
+            phone_number=random_phone_number(),
+
+                
+            
+                
+			salary=random_float(),
+
+                
+            
         )

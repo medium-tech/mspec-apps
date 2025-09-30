@@ -60,30 +60,80 @@ def create_db_tables(ctx:dict) -> None:
     cursor.execute("CREATE TABLE IF NOT EXISTS user(id INTEGER PRIMARY KEY, name, email, profile)")
     cursor.execute("CREATE TABLE IF NOT EXISTS user_password_hash(id INTEGER PRIMARY KEY, user_id INTEGER REFERENCES user(id), hash)")
 
+    
+        
     #
     # single model
     #
+    products_create_sql = "CREATE TABLE IF NOT EXISTS products(id INTEGER PRIMARY KEY"
 
-    cursor.execute("CREATE TABLE IF NOT EXISTS products(id INTEGER PRIMARY KEY, 'in_stock', 'price', 'product_name')")
+            
+    products_create_sql += ", 'in_stock'"
 
+            
+    products_create_sql += ", 'price'"
 
+            
+    products_create_sql += ", 'product_name'"
+
+            
+    products_create_sql += ')'
+    cursor.execute(products_create_sql)
+
+            
+        
     #
     # single model
     #
+    customers_create_sql = "CREATE TABLE IF NOT EXISTS customers(id INTEGER PRIMARY KEY"
 
-    cursor.execute("CREATE TABLE IF NOT EXISTS customers(id INTEGER PRIMARY KEY, 'customer_name', 'email', 'phone_number')")
+            
+    customers_create_sql += ", 'customer_name'"
 
+            
+    customers_create_sql += ", 'email'"
 
+            
+    customers_create_sql += ", 'phone_number'"
+
+            
+    customers_create_sql += ')'
+    cursor.execute(customers_create_sql)
+
+            
+        
+    
+        
     #
     # single model
     #
+    employees_create_sql = "CREATE TABLE IF NOT EXISTS employees(id INTEGER PRIMARY KEY"
 
-    cursor.execute("CREATE TABLE IF NOT EXISTS employees(id INTEGER PRIMARY KEY, 'email', 'employee_name', 'hire_date', 'phone_number', 'position', 'salary')")
+            
+    employees_create_sql += ", 'email'"
 
+            
+    employees_create_sql += ", 'employee_name'"
 
+            
+    employees_create_sql += ", 'hire_date'"
 
+            
+    employees_create_sql += ", 'phone_number'"
 
+            
+    employees_create_sql += ", 'position'"
 
+            
+    employees_create_sql += ", 'salary'"
+
+            
+    employees_create_sql += ')'
+    cursor.execute(employees_create_sql)
+
+            
+        
+    
 
 
     ctx['db']['commit']()

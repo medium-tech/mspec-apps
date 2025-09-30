@@ -28,6 +28,7 @@ def db_create_post(ctx:dict, obj:Post) -> Post:
     
     obj.validate()
     cursor:sqlite3.Cursor = ctx['db']['cursor']
+    
     # must be logged in to make post
     user = ctx['auth']['get_user']()
     if obj.user_id != '' and obj.user_id != user.id:
@@ -36,7 +37,9 @@ def db_create_post(ctx:dict, obj:Post) -> Post:
     obj.user_id = user.id
     assert obj.user_id is not None
 
+    
 
+    
 
     result = cursor.execute(
         "INSERT INTO post('content', 'user_id') VALUES(?, ?)",
@@ -47,6 +50,9 @@ def db_create_post(ctx:dict, obj:Post) -> Post:
     obj.id = str(result.lastrowid)
 
 
+
+
+    
 
     ctx['db']['commit']()
     return obj
@@ -71,13 +77,21 @@ def db_read_post(ctx:dict, id:str) -> Post:
 
 
     
+    
     return Post(
         id=str(entry[0]),
+        
+            
         content=entry[1],
 
-        user_id=entry[2],
+            
+        
+            
+        user_id=str(entry[2]),
 
-
+            
+        
+        
     ).validate()
 
 def db_update_post(ctx:dict, obj:Post) -> Post:
@@ -96,7 +110,12 @@ def db_update_post(ctx:dict, obj:Post) -> Post:
     
     obj.validate()
     cursor:sqlite3.Cursor = ctx['db']['cursor']
+    
+    user = ctx['auth']['get_user']()
+    if obj.user_id != user.id:
+        raise ForbiddenError('not allowed to update this post')
 
+    
 
     result = cursor.execute(
         "UPDATE post SET 'content'=?, 'user_id'=? WHERE id=?",
@@ -104,6 +123,7 @@ def db_update_post(ctx:dict, obj:Post) -> Post:
     )
     if result.rowcount == 0:
         raise NotFoundError(f'post {obj.id} not found')
+
 
 
 
@@ -122,11 +142,23 @@ def db_delete_post(ctx:dict, id:str) -> None:
     """
 
     cursor:sqlite3.Cursor = ctx['db']['cursor']
+    
+    user = ctx['auth']['get_user']()
+    try:
+        obj = db_read_post(ctx, id)
+    except NotFoundError:
+        return
+
+    if obj.user_id != user.id:
+        raise ForbiddenError('not allowed to delete this post')
+
+    
 
 
     cursor.execute(f"DELETE FROM post WHERE id=?", (id,))
 
 
+    
 
     ctx['db']['commit']()
 
@@ -149,15 +181,21 @@ def db_list_post(ctx:dict, offset:int=0, limit:int=25) -> dict:
     query = cursor.execute("SELECT * FROM post ORDER BY id LIMIT ? OFFSET ?", (limit, offset))
 
     for entry in query.fetchall():
-
         
         items.append(Post(
             id=str(entry[0]),
+            
+                
         content=entry[1],
 
-        user_id=entry[2],
+                
+            
+                
+        user_id=str(entry[2]),
 
-
+                
+            
+            
         ).validate())
 
     return {

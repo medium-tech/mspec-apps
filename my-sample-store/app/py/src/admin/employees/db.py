@@ -28,7 +28,9 @@ def db_create_employees(ctx:dict, obj:Employees) -> Employees:
     
     obj.validate()
     cursor:sqlite3.Cursor = ctx['db']['cursor']
+    
 
+    
 
     result = cursor.execute(
         "INSERT INTO employees('email', 'employee_name', 'hire_date', 'phone_number', 'position', 'salary') VALUES(?, ?, ?, ?, ?, ?)",
@@ -39,6 +41,9 @@ def db_create_employees(ctx:dict, obj:Employees) -> Employees:
     obj.id = str(result.lastrowid)
 
 
+
+
+    
 
     ctx['db']['commit']()
     return obj
@@ -63,21 +68,41 @@ def db_read_employees(ctx:dict, id:str) -> Employees:
 
 
     
+    
     return Employees(
         id=str(entry[0]),
+        
+            
         email=entry[1],
 
+            
+        
+            
         employee_name=entry[2],
 
+            
+        
+            
         hire_date=entry[3],
 
+            
+        
+            
         phone_number=entry[4],
 
+            
+        
+            
         position=entry[5],
 
+            
+        
+            
         salary=entry[6],
 
-
+            
+        
+        
     ).validate()
 
 def db_update_employees(ctx:dict, obj:Employees) -> Employees:
@@ -96,6 +121,7 @@ def db_update_employees(ctx:dict, obj:Employees) -> Employees:
     
     obj.validate()
     cursor:sqlite3.Cursor = ctx['db']['cursor']
+    
 
     result = cursor.execute(
         "UPDATE employees SET 'email'=?, 'employee_name'=?, 'hire_date'=?, 'phone_number'=?, 'position'=?, 'salary'=? WHERE id=?",
@@ -103,6 +129,7 @@ def db_update_employees(ctx:dict, obj:Employees) -> Employees:
     )
     if result.rowcount == 0:
         raise NotFoundError(f'employees {obj.id} not found')
+
 
 
 
@@ -121,10 +148,13 @@ def db_delete_employees(ctx:dict, id:str) -> None:
     """
 
     cursor:sqlite3.Cursor = ctx['db']['cursor']
+    
+
 
     cursor.execute(f"DELETE FROM employees WHERE id=?", (id,))
 
 
+    
 
     ctx['db']['commit']()
 
@@ -147,23 +177,41 @@ def db_list_employees(ctx:dict, offset:int=0, limit:int=25) -> dict:
     query = cursor.execute("SELECT * FROM employees ORDER BY id LIMIT ? OFFSET ?", (limit, offset))
 
     for entry in query.fetchall():
-
         
         items.append(Employees(
             id=str(entry[0]),
+            
+                
         email=entry[1],
 
+                
+            
+                
         employee_name=entry[2],
 
+                
+            
+                
         hire_date=entry[3],
 
+                
+            
+                
         phone_number=entry[4],
 
+                
+            
+                
         position=entry[5],
 
+                
+            
+                
         salary=entry[6],
 
-
+                
+            
+            
         ).validate())
 
     return {
